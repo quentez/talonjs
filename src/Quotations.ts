@@ -1,4 +1,4 @@
-import { findDelimiter } from "./Utils";
+import { findDelimiter, splitLines, matchStart } from "./Utils";
 import * as TalonRegexp from "./Regexp";
 import * as TalonConstants from "./Constants";
 
@@ -32,12 +32,12 @@ export default class Quotations {
     messageBody = this.preprocess(messageBody, delimiter);
     
     // Only take the X first lines.
-    let lines = messageBody.split(/\r?\n/).slice(TalonConstants.MaxLinesCount);
+    const lines = splitLines(messageBody).slice(TalonConstants.MaxLinesCount);
     const markers = this.markMessageLines(lines);
-    lines = this.processMarkedLines(lines, markers);
+    const { lastMessageLines } = this.processMarkedLines(lines, markers);
     
     // Concatenate the lines, change links back, strip and return.
-    messageBody = lines.join(delimiter);
+    messageBody = lastMessageLines.join(delimiter);
     messageBody = this.postProcess(messageBody);
     
     // Return the extracted message.
@@ -91,15 +91,148 @@ export default class Quotations {
     return messageBody;
   }
   
-  private markMessageLines(lines: string[]): string[] {
+  /** 
+   * Mark message lines with markers to distinguish quotation lines.
+   * 
+   * Markers:
+   * 
+   * e - empty line.
+   * m - line that starts with quotation marker '>'
+   * s - splitter line.
+   * t - presumably lines from that last message in the conversation.
+   * 
+   * @params {string[]} lines - Array of lines to mark.
+   * @result {string} Array of markers as a single string.
+   */
+  private markMessageLines(lines: string[]): string {
+    const markers = new Array<string>(lines.length);
     
+    // For each line, find the corresponding marker.
+    let index = 0;
+    while (index < lines.length) {
+      const line = lines[index];
+      
+      // Empty line.
+      if (!line) {
+        markers[index] = "e";
+      // Line with a quotation marker.
+      } else if (matchStart(line, TalonRegexp.QuotePattern)) {
+        markers[index] = "m";
+      // Forwarded message.
+      } else if (matchStart(line, TalonRegexp.Forward)) {
+        markers[index] = "f";
+      } else {
+        // Try to find a splitter spread on several lines.
+        const splitterMatch = this.isSplitter(lines.slice(index, index + TalonConstants.SplitterMaxLines).join("\n"));
+        
+        // If none was found, assume it's a line from the last message in the conversation.
+        if (!splitterMatch) {
+          markers[index] = "t";
+        // Otherwise, append as many splitter markers, as lines in the splitter.
+        } else {
+          const splitterLines = splitLines(splitterMatch[0]);
+          for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++)
+            markers[index + splitterIndex] = "s";
+            
+          // Skip as many lines as we just updated.
+          index += splitLines.length - 1;
+        }        
+      }
+      
+      index++;
+    }    
+    
+    return markers.join();
   }
   
-  private processMarkedLines(lines: string[], markers: string[]): string[] {
+  /**
+   * Run regexes against the message's marked lines to strip quotations.
+   * Returns only the last message lines.
+   * 
+   * @param {string[]} lines - Array of lines to process.
+   * @param {string} markers - Array of markers for the specified lines.
+   * @return {string[]} The lines for th
+   */
+  private processMarkedLines(lines: string[], markers: string): {
+    lastMessageLines: string[],
+    wereLinesDeleted: boolean,
+    firstDeletedLine: number,
+    lastDeletedLine: number
+  } {
+    const result = {
+      lastMessageLines: lines,
+      wereLinesDeleted: false,
+      firstDeletedLine: -1,
+      lastDeletedLine: -1
+    };
     
+    // If there are no splitters, there should be no markers.
+    if (markers.indexOf("s") < 0 && !/(me*){3}/.exec(markers))
+      markers.replace("m", "t");
+    
+    if (matchStart(markers, /[te]*f/))
+      return result;
+      
+    // Inlined reply.
+    // Use lookbehind assertions to find overlapping entries. e.g. for "mtmtm".
+    // Both "t" entries should be found.
+    let inlineReplyMatch: any;
+    while (inlineReplyMatch = /(?<=m)e*((?:t+e*)+)m/g.exec(markers)) {
+      // Long links could break a sequence of quotation lines,
+      // but they shouldn't be considered an inline reply.
+      const links = lines[inlineReplyMatch[3] - 1].match(TalonRegexp.ParenthesisLink)
+        || matchStart(lines[inlineReplyMatch[3]].trim(), TalonRegexp.ParenthesisLink)
+
+      if (!links)
+        return result;
+    }
+    
+    // Cut out text lines coming after the splitter if there are no markers there.
+    let quotation: any[] = markers.match("(se*)+((t|f)+e*)+");
+    if (quotation) {
+      result.wereLinesDeleted = true;
+      result.firstDeletedLine = quotation[3];
+      result.lastDeletedLine = lines.length;
+      result.lastMessageLines = lines.slice(0, quotation[3]);
+      return result;
+    }
+    
+    // Handle the case with markers.
+    quotation = markers.match(TalonRegexp.Quotation)
+      || markers.match(TalonRegexp.EmptyQuotation);
+    
+    if (quotation) {
+      const firstGroupStart = quotation[0].indexOf(quotation[1]);
+      const firstGroupEnd = firstGroupStart + quotation[1].length;
+      
+      result.wereLinesDeleted = true;
+      result.firstDeletedLine = firstGroupStart;
+      result.lastDeletedLine = firstGroupEnd;
+      result.lastMessageLines = lines.slice(0, firstGroupStart).concat(lines.slice(firstGroupEnd));
+      return result;
+    }  
+        
+    return result;
   }
   
+  /**
+   * Make up for changes made while preprocessing the message.
+   * Convert link brackets back to "<" and ">".
+   */
   private postProcess(messageBody: string): string {
-    
+    return messageBody.replace(TalonRegexp.NormalizedLink, "<$1>").trim();
+  }
+  
+  /**
+   * Returns a Regexp match if the provided string is a splitter.
+   * @param {string} src - The string to search.
+   * @return {RegExpMatchArray} The match for the splitter that was found, if any.
+   */
+  private isSplitter(src: string): RegExpMatchArray {
+    for (let pattern of TalonRegexp.SplitterPatterns) {
+      var match = matchStart(src, pattern);
+      if (match)
+        return match;
+    }
   }
 }

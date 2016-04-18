@@ -121,5 +121,5 @@ export const Link = new RegExp("<(http://[^>]*)>");
 export const NormalizedLink = new RegExp("@@(http://[^>@]*)@@");
 export const ParenthesisLink = new RegExp("\(https?://");
 
-export const QuotePatten = new RegExp("^>+ ?");
+export const QuotePattern = new RegExp("^>+ ?");
 export const NoQuoteLine = new RegExp("^[^>].*[\S].*");
