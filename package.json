@@ -1,0 +1,11 @@
+{
+  "name": "talonjs",
+  "version": "1.0.0",
+  "description": "Javascript port of the Mailgun/Talon library.",
+  "main": "dist/Talon.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "FrontApp Inc.",
+  "license": "ISC"
+}
