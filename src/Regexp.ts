@@ -1,3 +1,5 @@
+export const Delimiter = new RegExp("\r?\n");
+
 export const Forward = new RegExp("^[-]+[ ]*Forwarded message[ ]*[-]+$", "im");
 
 export const OnDateSomebodyWrote = new RegExp(
