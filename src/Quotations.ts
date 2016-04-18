@@ -197,9 +197,9 @@ function processMarkedLines(lines: string[], markers: string): {
   let quotation: any = markers.match("(se*)+((t|f)+e*)+");
   if (quotation) {
     result.wereLinesDeleted = true;
-    result.firstDeletedLine = quotation[3];
+    result.firstDeletedLine = quotation.index;
     result.lastDeletedLine = lines.length;
-    result.lastMessageLines = lines.slice(0, quotation[3]);
+    result.lastMessageLines = lines.slice(0, quotation.index);
     return result;
   }
   
