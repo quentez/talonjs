@@ -1,5 +1,5 @@
-import Quotations from "./Quotations";
+import * as Quotations from "./Quotations";
 
-export default {
-  Quotations: Quotations
+export = {
+  quotations: Quotations
 }

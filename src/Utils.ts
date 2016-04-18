@@ -26,13 +26,6 @@ export function splitLines(str: string): string[] {
  * @return {RegExpMatchArray} The resulting match, if any. 
  */
 export function matchStart(str: string, regexp: RegExp): RegExpMatchArray {
-  let match: any[] = str.match(regexp);
-  if (!match)
-    return null;
-    
-  let matchOffset = match.find(e => Number.isFinite(e));
-  if (matchOffset > 0)
-    return null;
-    
-  return match;
+  let match: any = str.match(regexp);
+  return !match || match.index > 0 ? null : match;
 }

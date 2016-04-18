@@ -34,4 +34,4 @@ jspm_packages
 .node_repl_history
 
 # Typescript build directory.
-dist
+bin/

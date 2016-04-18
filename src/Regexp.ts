@@ -1,4 +1,4 @@
-export const Delimiter = new RegExp("\r?\n");
+export const Delimiter = new RegExp("\\r?\\n");
 
 export const Forward = new RegExp("^[-]+[ ]*Forwarded message[ ]*[-]+$", "im");
 
@@ -20,7 +20,7 @@ export const OnDateSomebodyWrote = new RegExp(
       ",",          // Most languages separate date and sender address by comma.
       "użytkownik"  // Polish date and sender address separator.
     ].join("|")
-  })(.*\n){0,2}.*(${
+  })(.*\\n){0,2}.*(${
     // Ending of the line.
     [
       "wrote", "sent",                    // English
@@ -40,7 +40,7 @@ export const OnDateWroteSomebody = new RegExp(
       "Op", 
       "Am"  // German
     ].join("|")
-  })[ ].*(.*\n){0,2}.*(${
+  })[ ].*(.*\\n){0,2}.*(${
     // Ending of the line.
     [
       "schreef", "verzond", "geschreven", // Dutch
@@ -82,7 +82,7 @@ export const EmptyQuotation = new RegExp(
 // ------Original Message------ or ---- Reply Message ----
 // With variations in other languages.
 export const OriginalMessage = new RegExp(
-  `[\s]*[-]+[ ]*(${
+  `[\\s]*[-]+[ ]*(${
     [
       "Original Message", "Reply Message",            // English
       "Ursprüngliche Nachricht", "Antwort Nachricht", // German
@@ -92,12 +92,12 @@ export const OriginalMessage = new RegExp(
 );
 
 export const FromColonOrDateColon = new RegExp(
-  `(_+\r?\n)?[\s]*(:?[*]?${
+  `(_+\\r?\\n)?[\\s]*(:?[*]?${
     [
       "From", "Van", "De", "Von", "Fra", "Från",      // "From" in different languages.
       "Date", "Datum", "Envoyé", "Skickat", "Sendt",  // "Date" in different languages.
     ].join("|")
-  })[\s]?:[*]? .*`, "i"
+  })[\\s]?:[*]? .*`, "i"
 );
 
 export const SplitterPatterns = [
@@ -107,19 +107,19 @@ export const SplitterPatterns = [
   FromColonOrDateColon,
   // 02.04.2012 14:20 пользователь "bob@example.com" <
   // bob@xxx.mailgun.org> написал:
-  new RegExp("(\d+/\d+/\d+|\d+\[^]\d+\[^]\d+)[^]*@"),
+  new RegExp("(\\d+/\\d+/\\d+|\\d+\\[^]\\d+\\[^]\\d+)[^]*@"),
   // 2014-10-17 11:28 GMT+03:00 Bob <
   // bob@example.com>:
-  new RegExp("\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+GMT[^]*@"),
+  new RegExp("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}\\s+GMT[^]*@"),
   // Thu, 26 Jun 2014 14:00:51 +0400 Bob <bob@example.com>:
-  new RegExp("\S{3,10}, \d\d? \S{3,10} 20\d\d,? \d\d?:\d\d(:\d\d)?( \S+){3,6}@\S+:"),
+  new RegExp("\\S{3,10}, \\d\\d? \\S{3,10} 20\\d\\d,? \\d\\d?:\\d\\d(:\\d\\d)?( \\S+){3,6}@\\S+:"),
   // Sent from Samsung MobileName <address@example.com> wrote:
   new RegExp("Sent from Samsung .*@.*> wrote")
 ];
 
 export const Link = new RegExp("<(http://[^>]*)>");
 export const NormalizedLink = new RegExp("@@(http://[^>@]*)@@");
-export const ParenthesisLink = new RegExp("\(https?://");
+export const ParenthesisLink = new RegExp("\\(https?://");
 
 export const QuotePattern = new RegExp("^>+ ?");
-export const NoQuoteLine = new RegExp("^[^>].*[\S].*");
+export const NoQuoteLine = new RegExp("^[^>].*[\\S].*");
