@@ -55,10 +55,6 @@ export function extractFromPlain(messageBody: string): string {
 export function extractFromHtml(messageBody: string): string {
   return messageBody;
 }
-  
-/*
-  * Private methods.
-  */
 
 /**
  * Prepares the message body for being stripped.
@@ -72,7 +68,7 @@ export function extractFromHtml(messageBody: string): string {
  * @param {string} contentType - The MIME content type of the provided body.
  * @return {string} The pre-processed message body.
  */
-function preprocess(messageBody: string, delimiter: string, contentType: TalonConstants.ContentType = TalonConstants.ContentTypeTextPlain): string {  
+export function preprocess(messageBody: string, delimiter: string, contentType: TalonConstants.ContentType = TalonConstants.ContentTypeTextPlain): string {  
   // Normalize links. i.e. replace "<", ">" wrapping the link with some symbols
   // so that ">" closing the link won't be mistaken for a quotation marker.   
   messageBody = messageBody.replace(TalonRegexp.Link, (match: string, link: string, offset: number, str: string): string => {
@@ -110,7 +106,7 @@ function preprocess(messageBody: string, delimiter: string, contentType: TalonCo
  * @params {string[]} lines - Array of lines to mark.
  * @result {string} Array of markers as a single string.
  */
-function markMessageLines(lines: string[]): string {
+export function markMessageLines(lines: string[]): string {
   const markers = new Array<string>(lines.length);
   
   // For each line, find the corresponding marker.
@@ -141,7 +137,7 @@ function markMessageLines(lines: string[]): string {
           markers[index + splitterIndex] = "s";
           
         // Skip as many lines as we just updated.
-        index += splitLines.length - 1;
+        index += splitterLines.length - 1;
       }        
     }
     
@@ -159,7 +155,7 @@ function markMessageLines(lines: string[]): string {
  * @param {string} markers - Array of markers for the specified lines.
  * @return {string[]} The lines for th
  */
-function processMarkedLines(lines: string[], markers: string): {
+export function processMarkedLines(lines: string[], markers: string): {
   lastMessageLines: string[],
   wereLinesDeleted: boolean,
   firstDeletedLine: number,
@@ -174,7 +170,7 @@ function processMarkedLines(lines: string[], markers: string): {
   
   // If there are no splitters, there should be no markers.
   if (markers.indexOf("s") < 0 && !/(me*){3}/.exec(markers))
-    markers.replace("m", "t");
+    markers = markers.replace("m", "t");
   
   if (matchStart(markers, /[te]*f/))
     return result;
@@ -183,14 +179,18 @@ function processMarkedLines(lines: string[], markers: string): {
   // Use lookbehind assertions to find overlapping entries. e.g. for "mtmtm".
   // Both "t" entries should be found.
   let inlineReplyMatch: any;
-  while (inlineReplyMatch = /(m)e*((?:t+e*)+)m/g.exec(markers)) {    
+  const inlineReplyRegexp = /(m)e*((?:t+e*)+)m/g;
+  while (inlineReplyMatch = inlineReplyRegexp.exec(markers)) {    
     // Long links could break a sequence of quotation lines,
     // but they shouldn't be considered an inline reply.
-    const links = lines[inlineReplyMatch[3]].match(TalonRegexp.ParenthesisLink)
-      || matchStart(lines[inlineReplyMatch[3] + 1].trim(), TalonRegexp.ParenthesisLink)
-
+    const links = lines[inlineReplyMatch.index].match(TalonRegexp.ParenthesisLink)
+      || matchStart(lines[inlineReplyMatch.index + 1].trim(), TalonRegexp.ParenthesisLink)
+    
     if (!links)
       return result;
+    
+    // Hack to emulate look-behind of first group.
+    inlineReplyRegexp.lastIndex--;
   }
   
   // Cut out text lines coming after the splitter if there are no markers there.
@@ -220,6 +220,10 @@ function processMarkedLines(lines: string[], markers: string): {
       
   return result;
 }
+  
+/*
+ * Private methods.
+ */
   
 /**
  * Make up for changes made while preprocessing the message.
