@@ -107,7 +107,7 @@ export const SplitterPatterns = [
   FromColonOrDateColon,
   // 02.04.2012 14:20 пользователь "bob@example.com" <
   // bob@xxx.mailgun.org> написал:
-  new RegExp("(\\d+/\\d+/\\d+|\\d+\\[^]\\d+\\[^]\\d+)[^]*@"),
+  new RegExp("(\\d+\\/\\d+\\/\\d+|\\d+\\.\\d+\\.\\d+)[^]*@"),
   // 2014-10-17 11:28 GMT+03:00 Bob <
   // bob@example.com>:
   new RegExp("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}\\s+GMT[^]*@"),

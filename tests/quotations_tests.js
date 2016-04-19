@@ -1,6 +1,10 @@
 "use strict";
 
+const fs = require("fs");
+const path = require("path");
+const async = require("front-async");
 const assert = require("chai").assert;
+const utils = require("./utils");
 const quotations = require("../bin/talon").quotations;
 
 describe("Quotations", function () {
@@ -583,6 +587,44 @@ describe("Quotations", function () {
         "hi";
         
       assert.equal(expected, quotations.preprocess(message, "\n"));
+    });
+  });
+  
+  describe("Fixtures", function () {
+    
+    it("should use fixtures to test ExtractFromPlain method.", function (done) {
+      // List the fixtures.
+      const standardRepliesPath = path.join("tests", "fixtures", "standard_replies");
+      return fs.readdir(standardRepliesPath, function (err, files) {
+        if (err)
+          return done(err);
+        
+        // Iterate on the files we found.
+        return async.eachSeries(files, (file, nextFile) => {
+          // We're only interested in email files.
+          if (file.substr(-4) !== ".eml")
+            return nextFile();
+            
+          return async.series({
+            
+            // Parse the EML file.
+            emailText: next => utils.parseEmlText(path.join(standardRepliesPath, file), next),
+            
+            // Try and load the reply text for this message.
+            replyText: next => utils.tryReadFile(path.join(standardRepliesPath, file.slice(0, -4) + "_reply_text"), next),
+            
+            // Compare the results.
+            checkText: (next, results) => {
+              // Try and extract the reply from the loaded message.
+              const extractedText = quotations.extractFromPlain(results.emailText);
+              
+              // Compare the reply text and the extracted text.
+              assert.equal((results.replyText || "Hello").replace(/\r\n/g, "\n").trim(), extractedText);
+              return next();
+            }
+          }, nextFile);
+        }, done);
+      });
     });
   });
 });

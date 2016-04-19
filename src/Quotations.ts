@@ -75,7 +75,7 @@ export function extractFromHtml(messageBody: string): string {
 export function preprocess(messageBody: string, delimiter: string, contentType: TalonConstants.ContentType = TalonConstants.ContentTypeTextPlain): string {  
   // Normalize links. i.e. replace "<", ">" wrapping the link with some symbols
   // so that ">" closing the link won't be mistaken for a quotation marker.   
-  messageBody = messageBody.replace(TalonRegexp.Link, (match: string, link: string, offset: number, str: string): string => {
+  messageBody = messageBody.replace(new RegExp(TalonRegexp.Link.source, "g"), (match: string, link: string, offset: number, str: string): string => {
     const newLineIndex = str.substring(offset).indexOf("\n");
     return str[newLineIndex + 1] === ">" ? match : `@@${link}@@`; 
   });
@@ -85,7 +85,7 @@ export function preprocess(messageBody: string, delimiter: string, contentType: 
     return messageBody;
     
   // Otherwise, wrap splitters with new lines.
-  messageBody = messageBody.replace(TalonRegexp.OnDateSomebodyWrote, (match: string, ...args: any[]) => {
+  messageBody = messageBody.replace(new RegExp(TalonRegexp.OnDateSomebodyWrote.source, "g"), (match: string, ...args: any[]) => {
     const offset = args.filter(a => isFinite(a))[0];
     const str = args[args.length - 1];
     
@@ -174,7 +174,7 @@ export function processMarkedLines(lines: string[], markers: string): {
   
   // If there are no splitters, there should be no markers.
   if (markers.indexOf("s") < 0 && !/(me*){3}/.exec(markers))
-    markers = markers.replace("m", "t");
+    markers = markers.replace(/m/g, "t");
   
   if (matchStart(markers, /[te]*f/))
     return result;
@@ -234,7 +234,7 @@ export function processMarkedLines(lines: string[], markers: string): {
  * Convert link brackets back to "<" and ">".
  */
 function postProcess(messageBody: string): string {
-  return messageBody.replace(TalonRegexp.NormalizedLink, "<$1>").trim();
+  return messageBody.replace(new RegExp(TalonRegexp.NormalizedLink.source, "g"), "<$1>").trim();
 }
 
 /**
