@@ -3,8 +3,8 @@ import * as TalonRegexp from "./Regexp";
 import * as TalonConstants from "./Constants";
   
 /*
-  * Module interface.
-  */
+ * Module interface.
+ */
 
 /**
  * Extracts a non quoted message from the provided message body.
@@ -57,8 +57,8 @@ export function extractFromHtml(messageBody: string): string {
 }
   
 /*
-  * Private methods.
-  */
+ * Private methods.
+ */
 
 /**
  * Prepares the message body for being stripped.
