@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Javascript port of the Mailgun/Talon library.",
   "main": "bin/Talon.js",
+  "repository": "https://github.com/quentez/talonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,5 +14,8 @@
     "front-async": "0.9.2-1",
     "mailparser": "0.5.3",
     "mocha": "2.4.5"
+  },
+  "dependencies": {
+    "cheerio": "^0.20.0"
   }
 }

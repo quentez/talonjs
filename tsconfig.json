@@ -9,6 +9,7 @@
     "sourceMap": true
   },
   "files": [
-    "src/Talon.ts"
+    "src/Talon.ts",
+    "typings/main.d.ts"
   ]
 }

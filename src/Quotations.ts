@@ -1,35 +1,24 @@
+import * as Cheerio from "cheerio";
+
 import { findDelimiter, splitLines, matchStart } from "./Utils";
 import * as TalonRegexp from "./Regexp";
 import * as TalonConstants from "./Constants";
+import * as HtmlQuotations from "./HtmlQuotations";
   
 /*
  * Module interface.
  */
 
-/**
- * Extracts a non quoted message from the provided message body.
- * @param {string} messageBody - The string to extract the message from.
- * @param {string} contentType - The MIME content type for the specified body.
- * @return {string} The extracted, non-quoted message.
- */
-export function extractFrom(messageBody: string, contentType: TalonConstants.ContentType = TalonConstants.ContentTypeTextPlain): string {    
-  // Depending on the content-type, use the appropriate method.
-  switch (contentType) {
-    case "text/plain":
-      return extractFromPlain(messageBody);
-    case "text/html":
-      return extractFromHtml(messageBody);
-    default:
-      return messageBody;
-  }
-}
-
 /** 
  * Extracts a non quoted message from the provided plain text.
+ * 
  * @param {string} messageBody - The plain text body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
 export function extractFromPlain(messageBody: string): string {
+  if (!messageBody && !messageBody.trim())
+    return messageBody;
+  
   // Prepare the provided message body.
   const delimiter = findDelimiter(messageBody);
   messageBody = preprocess(messageBody, delimiter);
@@ -49,11 +38,28 @@ export function extractFromPlain(messageBody: string): string {
 
 /**
  * Extracts a non quoted message from the provided html.
+ * 
  * @param {string} messageBody - The html body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromHtml(messageBody: string): string {
-  return messageBody;
+export function extractFromHtml(messageBody: string, done:(error?: any, body?: string) => void): void {
+  if (!messageBody && !messageBody.trim())
+    return done();
+  
+  // Remove all newline characters from the provided body.
+  messageBody = messageBody.replace(/\r\n/g, "").replace(/\n/g, "");
+  
+  // Parse the body as a Parse5 document.
+  const document = Cheerio.load(messageBody); 
+  
+  // Try and cut the quote of one of the known types.
+  const cutQuotations = HtmlQuotations.cutGmailQuote(document)
+    || HtmlQuotations.cutZimbraQuote(document)
+    || HtmlQuotations.cutBlockquote(document)
+    || HtmlQuotations.cutMicrosoftQuote(document)
+    || HtmlQuotations.cutById(document)
+    || HtmlQuotations.cutFromBlock(document);
+    
 }
   
 /*
@@ -232,6 +238,9 @@ export function processMarkedLines(lines: string[], markers: string): {
 /**
  * Make up for changes made while preprocessing the message.
  * Convert link brackets back to "<" and ">".
+ * 
+ * @param {string} messageBody - The message body to process.
+ * @return {string} The processed message body.
  */
 function postProcess(messageBody: string): string {
   return messageBody.replace(new RegExp(TalonRegexp.NormalizedLink.source, "g"), "<$1>").trim();
@@ -239,6 +248,7 @@ function postProcess(messageBody: string): string {
 
 /**
  * Returns a Regexp match if the provided string is a splitter.
+ * 
  * @param {string} src - The string to search.
  * @return {RegExpMatchArray} The match for the splitter that was found, if any.
  */

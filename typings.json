@@ -1,0 +1,5 @@
+{
+  "ambientDependencies": {
+    "cheerio": "registry:dt/cheerio#0.17.0+20160407085313"
+  }
+}
