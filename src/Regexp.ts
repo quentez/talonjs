@@ -1,3 +1,7 @@
+import { CheckpointPrefix, CheckpointSuffix } from "./Constants";
+
+export const CheckPoint = new RegExp(`${CheckpointPrefix}\\d+${CheckpointSuffix}`, "im");
+
 export const Delimiter = new RegExp("\\r?\\n");
 
 export const Forward = new RegExp("^[-]+[ ]*Forwarded message[ ]*[-]+$", "im");

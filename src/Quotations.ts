@@ -60,6 +60,11 @@ export function extractFromHtml(messageBody: string, done:(error?: any, body?: s
     || HtmlQuotations.cutById(document)
     || HtmlQuotations.cutFromBlock(document);
     
+  // Keep a copy of the original document around.
+  const documentCopy = document.root().clone();
+  
+  // Add the checkpoints to the HTML tree.
+  
 }
   
 /*

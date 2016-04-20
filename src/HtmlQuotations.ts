@@ -5,6 +5,36 @@ import * as TalonRegexp from "./Regexp";
 import * as TalonConstants from "./Constants";
 
 /**
+ * Add checkpoints to an HTML element and all its descendants.
+ * 
+ * @param {Cheerio} element - The HTML document to edit.
+ * @param {number} count - The number of checkpoints already added.
+ * @return {number} The total number of checkpoints in the document.
+ */
+export function addCheckpoint(element: Cheerio, count: number = 0): number {
+  if (element.length === 0)
+    return count;
+  
+  // Update the text for this element.
+  element.text(`${element.text() || ""}${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`);
+  count++;
+  
+  // Process recursively.
+  element.children().each((index, element) => 
+    count = addCheckpoint(Cheerio(element), count));
+    
+  // Also update the following text node, if any.
+  const nextSibling = element.get(0).nextSibling;
+  if (nextSibling.type === "text") {
+    nextSibling.nodeValue = `${nextSibling.nodeValue || ""}${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`
+    count++;
+  }
+  
+  // Return the updated count.
+  return count;
+};
+
+/**
  * Cuts the outermost block element with the class "gmail_quote".
  * 
  * @param {CheerioSelector} document - The document to cut the element from.
