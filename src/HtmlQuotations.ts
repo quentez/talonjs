@@ -30,6 +30,8 @@ export function addCheckpoint(document: Document, element: Node, count: number =
   // Also update the following text node, if any.
   if (element.nextSibling && element.nextSibling.nodeType === 3)
     element.parentNode.replaceChild(document.createTextNode(`${element.nextSibling.nodeValue || ""}${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`), element.nextSibling);
+  else if (element.parentNode)
+    element.parentNode.appendChild(document.createTextNode(`${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`));
   count++;
   
   // Return the updated count.
@@ -56,8 +58,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
       element.replaceChild(document.createTextNode(""), element.firstChild);
   } else {
     isTagInQuotation = false;
-  }
-    
+  } 
   count++;
   
   // Process recursively.
@@ -242,14 +243,14 @@ export function cutBlockquote(document: Document): boolean {
 export function cutFromBlock(document: Document): boolean {
   // Handle the case when "From:" block is enclosed in some tag.
   const block1List = <Node[]>XPath.select(
-    "//*[starts-with(mg:text_content(), 'From:')]|" +
-    "//*[starts-with(mg:text_content(), 'Date:')]"
+    "//*[starts-with(text(), \"From:\")]|" +
+    "//*[starts-with(text(), \"Date:\")]"
   , document);
   
   if (block1List.length > 0) {
     let block1 = block1List[block1List.length - 1];
     
-    // Find the parent of outermost div for this block.
+    // Find the parent of the outermost div for this block.
     let parentDiv: Node;
     while (block1.parentNode) {
       if (block1.nodeName === "div") {
@@ -267,10 +268,10 @@ export function cutFromBlock(document: Document): boolean {
     // Otherwise, check if the parent div is at the root of the document.
     const maybeBody = parentDiv.parentNode;
     
-    // If where removing this enclosing div would remove all content,
+    // If removing the enclosing div would remove all content,
     // we should assume the quote is not enclosed in a tag.
     const parentDivIsAllContent = maybeBody 
-      && maybeBody.nodeName === "body"
+      && (maybeBody.nodeName === "root" || maybeBody.nodeName === "body")
       && maybeBody.childNodes.length === 1;
       
     if (!parentDivIsAllContent) {
@@ -278,23 +279,4 @@ export function cutFromBlock(document: Document): boolean {
       return true;
     }
   }
-  
-  // Handle the case when the "From:" block is at the root level,
-  // and not enclosed in some other tag.
-  const block2 = <Node>XPath.select(
-    "//*[starts-with(mg:tail(), 'From:')]|" +
-    "//*[starts-with(mg:tail(), 'Date:')]"
-  , document, true);
-  
-  // If no block was found, or if it's a forward, stop.
-  if (!block2 || matchStart((block2.textContent || ""), TalonRegexp.Forward))
-    return false;
-    
-  // Otherwise, remove all the subsequent blocks.
-  while (block2.nextSibling)
-    block2.parentNode.removeChild(block2.nextSibling);
-  
-  // Along with the block itself.
-  block2.parentNode.removeChild(block2);
-  return true;
 };

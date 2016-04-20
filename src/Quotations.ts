@@ -82,13 +82,13 @@ export function extractFromHtml(messageBody: string): string {
   // Collect the checkpoints on each line.
   const lineCheckpoints = lines.map(line => {
     const result = new Array<number>();
-    for (let match of line.match(TalonRegexp.CheckPoint))
+    for (let match of line.match(new RegExp(TalonRegexp.CheckPoint.source, "g")))
       result.push(parseInt(match.slice(4, -4), 10));
     return result;
   });
   
   // Remove checkpoints.
-  lines = lines.map(line => line.replace(new RegExp(TalonRegexp.CheckPoint.source), ""));
+  lines = lines.map(line => line.replace(new RegExp(TalonRegexp.CheckPoint.source, "g"), ""));
   
   // Use the plain text quotation algorithm.
   const markers = markMessageLines(lines);
