@@ -1,3 +1,5 @@
+import * as XPath from "xpath";
+import * as TalonContants from "./Constants";
 import * as TalonRegexp from "./Regexp";
 
 /**
@@ -8,7 +10,7 @@ import * as TalonRegexp from "./Regexp";
 export function findDelimiter(messageBody: string): string {
   var match = TalonRegexp.Delimiter.exec(messageBody);
   return match ? match[0] : "\n";
-}
+};
 
 /**
  * Split a string in its multiples lines.
@@ -28,4 +30,66 @@ export function splitLines(str: string): string[] {
 export function matchStart(str: string, regexp: RegExp): RegExpMatchArray {
   let match: any = str.match(regexp);
   return !match || match.index > 0 ? null : match;
+};
+
+/**
+ * Dead-simple HTML-to-text converter.
+ * 
+ * "one<br>two<br>three" => "one\ntwo\nthree"
+ * 
+ * @param {Cheerio} element - The HTML element to stringify.
+ * @return {string} The string representation of the provided element.
+ */
+export function htmlToText(element: Node): string {
+  // Remove <style> elements.
+  const styleNodes = <Node[]>XPath.select("//style", element);
+  for (const styleNode of styleNodes)
+    styleNode.parentNode.removeChild(styleNode);
+  
+  // Remove //comments.
+  const commentNodes = <Node[]>XPath.select("//comment()", element);
+  for (const commentNode of commentNodes)
+    commentNode.parentNode.removeChild(commentNode);
+  
+  let text = "";
+  
+  const allNodes = <Node[]>XPath.select("//*", element);
+  for (const node of allNodes) {
+    const nodeText = ((node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.textContent) || "")
+      + ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.textContent) || "");
+    
+    if (nodeText.length > 1) {
+      // Depending on the tag name, prepend content.
+      if (TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
+        text += "\n";
+      if (node.nodeName.toLowerCase() === "li")
+        text += "  * ";
+        
+      // Add this element's text to the 
+      text += nodeText.trim() + " ";
+      
+      // Add href to the output.
+      const href = node.attributes.getNamedItem("href");
+      if (href)
+        text += `(${href}) `;
+    }
+    
+    // If needed, add a line break after this element.
+    if (TalonContants.Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0 
+        && text && text[text.length - 1] !== "\n")
+      text += "\n";
+  }
+  
+  // Remove excessive new lines from the result and return.
+  return removeExcessiveNewlines(text);
+};
+
+/**
+ * Remove excessive newlines that often happen as a result of tons of divs.
+ * 
+ * @param {string} src - The string to process.
+ * @return {string} The processed string.
+ */
+function removeExcessiveNewlines(src: string): string {
+  return src.replace(/\n{2,10}/g, "\n\n").trim();
 }

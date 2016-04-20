@@ -7,7 +7,7 @@
 			"request": "launch",
 			"program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
 			"stopOnEntry": false,
-			"args": ["tests/*.js", "-t 100000"],
+			"args": ["tests/html*.js", "-t 100000"],
 			"cwd": "${workspaceRoot}",
 			"preLaunchTask": null,
 			"runtimeExecutable": null,

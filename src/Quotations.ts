@@ -1,6 +1,10 @@
 import * as Cheerio from "cheerio";
+import * as XmlDom from "xmldom";
 
-import { findDelimiter, splitLines, matchStart } from "./Utils";
+const xmlDomParser = new XmlDom.DOMParser();
+const xmlDomSerializer = new XmlDom.XMLSerializer();
+
+import { findDelimiter, splitLines, matchStart, htmlToText } from "./Utils";
 import * as TalonRegexp from "./Regexp";
 import * as TalonConstants from "./Constants";
 import * as HtmlQuotations from "./HtmlQuotations";
@@ -42,9 +46,9 @@ export function extractFromPlain(messageBody: string): string {
  * @param {string} messageBody - The html body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromHtml(messageBody: string, done:(error?: any, body?: string) => void): void {
+export function extractFromHtml(messageBody: string): string {
   if (!messageBody && !messageBody.trim())
-    return done();
+    return null;
   
   // Remove all newline characters from the provided body.
   messageBody = messageBody.replace(/\r\n/g, "").replace(/\n/g, "");
@@ -53,18 +57,60 @@ export function extractFromHtml(messageBody: string, done:(error?: any, body?: s
   const document = Cheerio.load(messageBody); 
   
   // Try and cut the quote of one of the known types.
-  const cutQuotations = HtmlQuotations.cutGmailQuote(document)
-    || HtmlQuotations.cutZimbraQuote(document)
-    || HtmlQuotations.cutBlockquote(document)
-    || HtmlQuotations.cutMicrosoftQuote(document)
-    || HtmlQuotations.cutById(document)
-    || HtmlQuotations.cutFromBlock(document);
+  const xmlDocument = xmlDomParser.parseFromString("<root>" + document.xml() + "</root>");
+  const cutQuotations = HtmlQuotations.cutGmailQuote(xmlDocument)
+    || HtmlQuotations.cutZimbraQuote(xmlDocument)
+    || HtmlQuotations.cutBlockquote(xmlDocument)
+    || HtmlQuotations.cutMicrosoftQuote(xmlDocument)
+    || HtmlQuotations.cutById(xmlDocument)
+    || HtmlQuotations.cutFromBlock(xmlDocument);
     
   // Keep a copy of the original document around.
-  const documentCopy = document.root().clone();
+  const xmlDocumentCopy = xmlDocument.cloneNode(true);
   
   // Add the checkpoints to the HTML tree.
+  const numberOfCheckpoints = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
+  const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
   
+  const messagePlainText = preprocess(htmlToText(xmlDocument), "\n", TalonConstants.ContentTypeTextPlain);
+  let lines = splitLines(messagePlainText);
+  
+  // Stop here if the message is too long.
+  if (lines.length > TalonConstants.MaxLinesCount)
+    return messageBody;
+    
+  // Collect the checkpoints on each line.
+  const lineCheckpoints = lines.map(line => {
+    const result = new Array<number>();
+    for (let match of line.match(TalonRegexp.CheckPoint))
+      result.push(parseInt(match.slice(4, -4), 10));
+    return result;
+  });
+  
+  // Remove checkpoints.
+  lines = lines.map(line => line.replace(new RegExp(TalonRegexp.CheckPoint.source), ""));
+  
+  // Use the plain text quotation algorithm.
+  const markers = markMessageLines(lines);
+  const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
+  
+  // If a quote was found, mark the corresponding tags as such.
+  if (wereLinesDeleted)
+    for (let index = firstDeletedLine; index <= lastDeletedLine; index++) 
+      for (let checkpoint of lineCheckpoints[index])
+        quotationCheckpoints[checkpoint] = true;
+  // Otherwise, if we found a known quote earlier, return the content before.
+  else if (cutQuotations)
+    return xmlDomSerializer.serializeToString(xmlDocumentCopy).slice(6, -7);
+  // Finally, if no quote was found, return the original HTML.
+  else
+    return messageBody;
+    
+  // Remove the tags that we marked as quotation from the HTML.
+  HtmlQuotations.deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
+  
+  // Serialize and return.
+  return xmlDomSerializer.serializeToString(xmlDocumentCopy).slice(6, -7);
 }
   
 /*
@@ -213,7 +259,7 @@ export function processMarkedLines(lines: string[], markers: string): {
   if (quotation) {
     result.wereLinesDeleted = true;
     result.firstDeletedLine = quotation.index;
-    result.lastDeletedLine = lines.length;
+    result.lastDeletedLine = lines.length - 1;
     result.lastMessageLines = lines.slice(0, quotation.index);
     return result;
   }
@@ -228,7 +274,7 @@ export function processMarkedLines(lines: string[], markers: string): {
     
     result.wereLinesDeleted = true;
     result.firstDeletedLine = firstGroupStart;
-    result.lastDeletedLine = firstGroupEnd;
+    result.lastDeletedLine = firstGroupEnd - 1;
     result.lastMessageLines = lines.slice(0, firstGroupStart).concat(lines.slice(firstGroupEnd));
     return result;
   }  
@@ -258,7 +304,7 @@ function postProcess(messageBody: string): string {
  * @return {RegExpMatchArray} The match for the splitter that was found, if any.
  */
 function isSplitter(src: string): RegExpMatchArray {
-  for (let pattern of TalonRegexp.SplitterPatterns) {
+  for (const pattern of TalonRegexp.SplitterPatterns) {
     var match = matchStart(src, pattern);
     if (match)
       return match;
