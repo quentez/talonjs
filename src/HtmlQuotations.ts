@@ -8,7 +8,8 @@ import * as TalonConstants from "./Constants";
 /**
  * Add checkpoints to an HTML element and all its descendants.
  * 
- * @param {Cheerio} element - The HTML element to edit.
+ * @param {Document} document - The DOM document.
+ * @param {Node} element - The HTML element to edit.
  * @param {number} count - The number of checkpoints already added.
  * @return {number} The total number of checkpoints in the document.
  */
@@ -41,7 +42,8 @@ export function addCheckpoint(document: Document, element: Node, count: number =
 /**
  * Remove tags with quotation checkpoints from the provided HTML element and all its descendants.
  * 
- * @param {Cheerio} element - The HTML element to edit.
+ * @param {Document} document - The DOM document.
+ * @param {Node} element - The HTML element to edit.
  * @param {boolean[]} quotationCheckpoints - The checkpoints for the tags to remove.
  * @param {number} count - The number of scanned tags.
  * @return {object} The updated count, and whether this tag was part of a quote or not.
@@ -103,7 +105,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
 /**
  * Cuts the outermost block element with the class "gmail_quote".
  * 
- * @param {CheerioSelector} document - The document to cut the element from.
+ * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutGmailQuote(document: Document): boolean {
@@ -122,7 +124,7 @@ export function cutGmailQuote(document: Document): boolean {
 /**
  * Cuts the Outlook splitter block and all the following block.
  * 
- * @param {CheerioSelector} document - The document to cut the elements from.
+ * @param {Document} document - The document to cut the elements from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutMicrosoftQuote(document: Document): boolean {
@@ -179,7 +181,7 @@ export function cutMicrosoftQuote(document: Document): boolean {
 /**
  * Cuts a Zimbra quote block.
  * 
- * @param {CheerioSelector} document - The document to cut the element from.
+ * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutZimbraQuote(document: Document): boolean {
@@ -194,7 +196,7 @@ export function cutZimbraQuote(document: Document): boolean {
 /**
  * Cuts all of the outermost block elements with known quote ids.
  * 
- * @param {CheerioSelector} document - The document to cut the element from.
+ * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutById(document: Document): boolean {
@@ -217,7 +219,7 @@ export function cutById(document: Document): boolean {
 /**
  * Cust the last non-nested blockquote with wrapping elements.
  * 
- * @param {CheerioSelector} document - The document to cut the element from.
+ * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutBlockquote(document: Document): boolean {
@@ -237,7 +239,7 @@ export function cutBlockquote(document: Document): boolean {
 /**
  * Cuts div tag that wraps a block starting with "From:".
  * 
- * @param {CheerioSelector} document - The document to cut the element from.
+ * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutFromBlock(document: Document): boolean {

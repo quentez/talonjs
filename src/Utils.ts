@@ -55,8 +55,8 @@ export function htmlToText(element: Node): string {
   
   const allNodes = <Node[]>XPath.select("//*", element);
   for (const node of allNodes) {
-    const nodeText = ((node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.textContent) || "")
-      + ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.textContent) || "");
+    const nodeText = ((node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || "")
+      + ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || "");
     
     if (nodeText.length > 1) {
       // Depending on the tag name, prepend content.
