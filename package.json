@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "cheerio": "^0.20.0",
+    "html-entities": "^1.2.0",
     "xmldom": "^0.1.22",
     "xpath": "0.0.23"
   }

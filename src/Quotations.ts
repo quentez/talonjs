@@ -4,7 +4,7 @@ import * as XmlDom from "xmldom";
 const xmlDomParser = new XmlDom.DOMParser();
 const xmlDomSerializer = new XmlDom.XMLSerializer();
 
-import { findDelimiter, splitLines, matchStart, htmlToText } from "./Utils";
+import { findDelimiter, splitLines, matchStart, elementToText, normalizeHtmlDocument } from "./Utils";
 import * as TalonRegexp from "./Regexp";
 import * as TalonConstants from "./Constants";
 import * as HtmlQuotations from "./HtmlQuotations";
@@ -48,16 +48,21 @@ export function extractFromPlain(messageBody: string): string {
  */
 export function extractFromHtml(messageBody: string): string {
   if (!messageBody && !messageBody.trim())
-    return null;
+    return messageBody;
   
   // Remove all newline characters from the provided body.
-  messageBody = messageBody.replace(/\r\n/g, "").replace(/\n/g, "");
+  messageBody = messageBody.replace(/\r\n/g, "").replace(/\n/g, "");  
+  messageBody = normalizeHtmlDocument(messageBody);
   
-  // Parse the body as a Parse5 document.
-  const document = Cheerio.load(messageBody); 
+  // Parse the body as a Parse5 document.  
+  const document = Cheerio.load(messageBody);  
+  const xmlDocument = xmlDomParser.parseFromString(document.xml());  
+  
+  // HACK.
+  if (xmlDocument.lastChild && xmlDocument.lastChild.nodeValue)
+    xmlDocument.removeChild(xmlDocument.lastChild);
   
   // Try and cut the quote of one of the known types.
-  const xmlDocument = xmlDomParser.parseFromString("<root>" + document.xml() + "</root>");
   const cutQuotations = HtmlQuotations.cutGmailQuote(xmlDocument)
     || HtmlQuotations.cutZimbraQuote(xmlDocument)
     || HtmlQuotations.cutBlockquote(xmlDocument)
@@ -72,7 +77,7 @@ export function extractFromHtml(messageBody: string): string {
   const numberOfCheckpoints = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
   
-  const messagePlainText = preprocess(htmlToText(xmlDocument), "\n", TalonConstants.ContentTypeTextPlain);
+  const messagePlainText = preprocess(elementToText(xmlDocument), "\n", TalonConstants.ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
   
   // Stop here if the message is too long.
@@ -81,10 +86,10 @@ export function extractFromHtml(messageBody: string): string {
     
   // Collect the checkpoints on each line.
   const lineCheckpoints = lines.map(line => {
-    const result = new Array<number>();
-    for (let match of line.match(new RegExp(TalonRegexp.CheckPoint.source, "g")))
-      result.push(parseInt(match.slice(4, -4), 10));
-    return result;
+    const match = line.match(new RegExp(TalonRegexp.CheckPoint.source, "g"));
+    return match 
+      ? match.map(matchPart => parseInt(matchPart.slice(4, -4), 10))
+      : new Array<number>();
   });
   
   // Remove checkpoints.
@@ -101,7 +106,7 @@ export function extractFromHtml(messageBody: string): string {
         quotationCheckpoints[checkpoint] = true;
   // Otherwise, if we found a known quote earlier, return the content before.
   else if (cutQuotations)
-    return xmlDomSerializer.serializeToString(xmlDocumentCopy).slice(6, -7);
+    return xmlDomSerializer.serializeToString(xmlDocumentCopy);
   // Finally, if no quote was found, return the original HTML.
   else
     return messageBody;
@@ -110,7 +115,7 @@ export function extractFromHtml(messageBody: string): string {
   HtmlQuotations.deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
   
   // Serialize and return.
-  return xmlDomSerializer.serializeToString(xmlDocumentCopy).slice(6, -7);
+  return xmlDomSerializer.serializeToString(xmlDocumentCopy);
 }
   
 /*

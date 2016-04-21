@@ -37,10 +37,10 @@ export function matchStart(str: string, regexp: RegExp): RegExpMatchArray {
  * 
  * "one<br>two<br>three" => "one\ntwo\nthree"
  * 
- * @param {Cheerio} element - The HTML element to stringify.
+ * @param {Node} element - The HTML element to stringify.
  * @return {string} The string representation of the provided element.
  */
-export function htmlToText(element: Node): string {
+export function elementToText(element: Node): string {
   // Remove <style> elements.
   const styleNodes = <Node[]>XPath.select("//style", element);
   for (const styleNode of styleNodes)
@@ -55,7 +55,7 @@ export function htmlToText(element: Node): string {
   
   const allNodes = <Node[]>XPath.select("//*", element);
   for (const node of allNodes) {
-    const nodeText = ((node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || "")
+    const nodeText = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || "")
       + ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || "");
     
     if (nodeText.length > 1) {
@@ -82,6 +82,35 @@ export function htmlToText(element: Node): string {
   
   // Remove excessive new lines from the result and return.
   return removeExcessiveNewlines(text);
+};
+
+/**
+ * Ensure that an HTML document always has <html> and <body> tags.
+ * 
+ * @param {string} document - The HTML document to normalize.
+ * @return {string} The normalized HTML document.
+ */
+export function normalizeHtmlDocument(document: string): string {
+  const matchStart = document.match(/^\s*(<html[^>]*>)?\s*(<head[^>]*>.*<\/head>)?\s*(<body[^>]*>)?/im);
+  const matchEnd = document.match(/(<\/body>)?\s*(<\/html>)?\s*$/im);
+
+  if (!matchStart[3])
+    document = matchStart[0].trim() + 
+      "<body>" + 
+      document.slice(matchStart[0].length);
+
+  if (!matchStart[1])
+    document = "<html>" + document;
+
+  if (!matchEnd[1])
+    document = (matchEnd[0] ? document.slice(0, -matchEnd[0].length) : document) +
+      "</body>" +
+      matchEnd[0].trim();
+
+  if (!matchEnd[2])
+    document = document + "</html>";
+
+  return document;
 };
 
 /**

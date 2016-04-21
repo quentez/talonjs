@@ -17,6 +17,8 @@ export function addCheckpoint(document: Document, element: Node, count: number =
   // Update the text for this element.
   if (element.firstChild && element.firstChild.nodeType === 3)
     element.replaceChild(document.createTextNode(`${element.firstChild.nodeValue || ""}${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`), element.firstChild);
+  else
+    element.nodeValue = `${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`;
   count++;
   
   // Process recursively.
@@ -58,6 +60,8 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   if (quotationCheckpoints[count]) {
     if (element.firstChild && element.firstChild.nodeType === 3)
       element.replaceChild(document.createTextNode(""), element.firstChild);
+    else
+      element.nodeValue = "";
   } else {
     isTagInQuotation = false;
   } 
@@ -110,7 +114,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
  */
 export function cutGmailQuote(document: Document): boolean {
   // Find the first element that fits our criteria.
-  const gmailQuote = <Node>XPath.select("//div[contains(@class, 'gmail_quote')]", document, true);
+  const gmailQuote = <Node>XPath.select("//*[local-name(.)='div' and contains(@class, 'gmail_quote')]", document, true);
   
   // If no quote was found, or if that quote was a forward, return false.
   if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, TalonRegexp.Forward)))
@@ -130,12 +134,13 @@ export function cutGmailQuote(document: Document): boolean {
 export function cutMicrosoftQuote(document: Document): boolean {
   let splitter = <Node>XPath.select(
     // Outlook 2007, 2010.
-    "//div[@style='border:none;border-top:solid #B5C4DF 1.0pt;" + 
-    "padding:3.0pt 0cm 0cm 0cm']|" +
+    "//*[local-name(.)='div' and @style='border:none;" +
+      "border-top:solid #B5C4DF 1.0pt;" + 
+      "padding:3.0pt 0cm 0cm 0cm']|" +
     // Windows Mail.
-    "//div[@style='padding-top: 5px; " +
-    "border-top-color: rgb(229, 229, 229); " +
-    "border-top-width: 1px; border-top-style: solid;']"
+    "//*[local-name(.)='div' and @style='padding-top: 5px; " +
+      "border-top-color: rgb(229, 229, 229); " +
+      "border-top-width: 1px; border-top-style: solid;']"
   , document, true);
   
   if (splitter) {
@@ -145,13 +150,11 @@ export function cutMicrosoftQuote(document: Document): boolean {
   } else {
     // Outlook 2003.
     splitter = <Node>XPath.select(
-      "//div" +
-      "/div[@class='MsoNormal' and @align='center' " +
-      "and @style='text-align:center']" +
-      "/font" +
-      "/span" +
-      "/hr[@size='3' and @width='100%' and @align='center' " +
-      "and @tabindex='-1']"
+      "//*[local-name(.)='div']" +
+      "/*[local-name(.)='div' and @class='MsoNormal' and @align='center' and @style='text-align:center']" +
+      "/*[local-name(.)='font']" +
+      "/*[local-name(.)='span']" +
+      "/*[local-name(.)='hr' and @size='3' and @width='100%' and @align='center' and @tabindex='-1']"
     , document, true);
     
     if (splitter) {
@@ -185,7 +188,7 @@ export function cutMicrosoftQuote(document: Document): boolean {
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutZimbraQuote(document: Document): boolean {
-  const splitter = <Node>XPath.select("//hr[@data-marker=\"__DIVIDER__\"]", document, true);
+  const splitter = <Node>XPath.select("//*[local-name(.)='hr' and @data-marker=\"__DIVIDER__\"]", document, true);
   if (!splitter)
     return false;
     
@@ -224,7 +227,7 @@ export function cutById(document: Document): boolean {
  */
 export function cutBlockquote(document: Document): boolean {
   const quote = <Node>XPath.select(
-    "(.//blockquote)" +
+    "(.//*[local-name(.)='blockquote'])" +
     "[not(@class=\"gmail_quote\") and not(ancestor::blockquote)]" +
     "[last()]"
   , document, true);
@@ -273,7 +276,7 @@ export function cutFromBlock(document: Document): boolean {
     // If removing the enclosing div would remove all content,
     // we should assume the quote is not enclosed in a tag.
     const parentDivIsAllContent = maybeBody 
-      && (maybeBody.nodeName === "root" || maybeBody.nodeName === "body")
+      && (maybeBody.nodeName === "body")
       && maybeBody.childNodes.length === 1;
       
     if (!parentDivIsAllContent) {
@@ -281,4 +284,6 @@ export function cutFromBlock(document: Document): boolean {
       return true;
     }
   }
+  
+  return false;
 };

@@ -592,6 +592,18 @@ describe("Quotations", function () {
   
   describe("Fixtures", function () {
     
+    it("should find reply in quotations share block.", function (done) {
+      return utils.parseEmlText(path.join("tests", "fixtures", "reply-quotations-share-block.eml"), function (err, text) {
+        if (err)
+          return done(err);
+          
+        const strippedText = quotations.extractFromPlain(text);
+        assert.isOk(strippedText);
+        assert.equal(strippedText.indexOf("From"), -1);
+        done();
+      });
+    });
+    
     it("should use fixtures to test ExtractFromPlain method.", function (done) {
       // List the fixtures.
       const standardRepliesPath = path.join("tests", "fixtures", "standard_replies");

@@ -22,7 +22,9 @@ describe("Html Quotations", function () {
         "</div>\n\n" +
         "</blockquote>";
         
-      assert.equal("Reply", removeWhitespace(quotations.extractFromHtml(messageBody)));
+      const reply = "<html><body>Reply</body></html>";
+        
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
     });
     
     it("should find the reply with the quotate splitter outside the blockquote.", function () {
@@ -36,7 +38,9 @@ describe("Html Quotations", function () {
         "</div>\n"
         "</blockquote>";
         
-      assert.equal("Reply", removeWhitespace(quotations.extractFromHtml(messageBody)));
+      const reply = "<html><body>Reply</body></html>";
+        
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
     });
     
     it("should find the reply with a regular blockquote before the splitter.", function () {
@@ -51,7 +55,7 @@ describe("Html Quotations", function () {
         "</div>\n"
         "</blockquote>";
         
-      const reply = "Reply<blockquote>Regular</blockquote>";
+      const reply = "<html><body>Reply<blockquote>Regular</blockquote></body></html>";
         
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
     });
@@ -77,6 +81,214 @@ describe("Html Quotations", function () {
       assert.equal(
         removeWhitespace(reply), 
         removeWhitespace(quotations.extractFromHtml(messageBody)));
+    });
+    
+    it("should find an empty reply from an empty body.", function () {
+      assert.equal("", quotations.extractFromHtml(""));
+    });
+    
+    it("should validate that we always output valid HTML.", function () {
+      const messageBody = "Reply\n" +
+        "<div>\n" +
+        "On 11-Apr-2011, at 6:54 PM, Bob &lt;bob@example.com&gt; wrote:\n\n" +
+        "<blockquote>\n" +
+        "<div>\n" +
+        "Test\n" +
+        "</div>\n" +
+        "</blockquote>\n" +
+        "</div>\n\n" +
+        "<div/>\n";
+        
+      const result = quotations.extractFromHtml(messageBody);
+      assert.isAtLeast(result.indexOf("<html>"), 0);
+      assert.isAtLeast(result.indexOf("</html>"), 0);
+    });
+    
+    it("should strip Gmail quote.", function () {
+       const messageBody = `Reply
+        <div class="gmail_quote">
+          <div class="gmail_quote">
+            On 11-Apr-2011, at 6:54 PM, Bob &lt;bob@example.com&gt; wrote:
+            <div>
+              Test
+            </div>
+          </div>
+        </div>`;
+        
+      const reply = "<html><body>Reply        </body></html>";
+        
+      assert.equal(reply, quotations.extractFromHtml(messageBody));
+    });
+    
+    it("should strip Gmail quote compact.", function () {
+       const messageBody =  "Reply" +
+        "<div class=\"gmail_quote\">" +
+        "<div class=\"gmail_quote\">On 11-Apr-2011, at 6:54 PM, Bob &lt;bob@example.com&gt; wrote:" +
+        "<div>Test</div>" +
+        "</div>" +
+        "</div>";
+        
+      const reply = "<html><body>Reply</body></html>";
+        
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+    });
+    
+    it("shouldn't strip Gmail quote in blockquote.", function () {
+       const messageBody =  "Message" +
+        "<blockquote class=\"gmail_quote\">" +
+        "<div class=\"gmail_default\">" +
+        "My name is William Shakespeare." +
+        "<br/>" +
+        "</div>" +
+        "</blockquote>";
+        
+      assert.equal(
+        removeWhitespace("<html><body>" + messageBody + "</body></html>"), 
+        removeWhitespace(quotations.extractFromHtml(messageBody)));
+    });
+    
+    it("should detect reply with disclaimer after quote.", function () {
+       const messageBody = "\n<html>\n" +
+        "<body>\n" +
+        "<div>\n" +
+        "<div>\n" +
+        "message\n" +
+        "</div>\n" +
+        "<blockquote>\n" +
+        "Quote\n" +
+        "</blockquote>\n" +
+        "</div>\n" +
+        "<div>\n" +
+        "disclaimer\n" +
+        "</div>\n" +
+        "</body>\n" +
+        "</html>\n";
+        
+      const reply = "\n<html>\n" +
+        "<body>\n" +
+        "<div>\n" +
+        "<div>\n" +
+        "message\n" +
+        "</div>\n" +
+        "</div>\n" +
+        "<div>\n" +
+        "disclaimer\n" +
+        "</div>\n" +
+        "</body>\n" +
+        "</html>\n";
+        
+      assert.equal(
+        removeWhitespace(reply), 
+        removeWhitespace(quotations.extractFromHtml(messageBody)));
+    });
+    
+    it("should detect reply with \"date\" block splitter.", function () {
+      const messageBody = "\n<div>" +
+        "message<br>\n" +
+        "<div>\n" +
+        "<hr>\n" +
+        "Date: Fri, 23 Mar 2012 12:35:31 -0600<br>\n" +
+        "To: <a href=\"mailto:bob@example.com\">bob@example.com</a><br>\n" +
+        "From: <a href=\"mailto:rob@example.com\">rob@example.com</a><br>\n" +
+        "Subject: You Have New Mail From Mary!<br><br>\n\n" +
+        "text\n" +
+        "</div>\n" +
+        "</div>\n";
+        
+      const reply = "<html><body><div>message<br/></div></body></html>";
+        
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+    });
+    
+    it("should detect reply with \"from\" block splitter.", function () {
+      const messageBody = `<div>
+        message<br>
+        <div>
+        <hr>
+        From: <a href="mailto:bob@example.com">bob@example.com</a><br>
+        Date: Fri, 23 Mar 2012 12:35:31 -0600<br>
+        To: <a href="mailto:rob@example.com">rob@example.com</a><br>
+        Subject: You Have New Mail From Mary!<br><br>
+
+        text
+        </div></div>`;
+        
+      const reply = "<html><body><div>message<br/></div></body></html>";
+        
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+    });
+    
+    it("should detect reply with content in same element as \"from\" block splitter.", function () {
+      const messageBody = `
+        <body>
+          <div>
+
+            Blah<br><br>
+
+            <hr>Date: Tue, 22 May 2012 18:29:16 -0600<br>
+            To: xx@hotmail.ca<br>
+            From: quickemail@ashleymadison.com<br>
+            Subject: You Have New Mail From x!<br><br>
+
+          </div>
+        </body>`;
+        
+      const reply = "<html><body><div>Blah<br/><br/></div></body></html>";
+        
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+    });
+  });
+  
+  describe("Fixtures", function () {
+    
+    it("should find reply in OLK src body section.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "OLK_SRC_BODY_SECTION.html"), "utf-8", function (err, html) {
+        if (err)
+          return done(err);
+        
+        const reply = "<html><body><div>Reply</div></body></html>";
+        assert.equal(reply, removeWhitespace(quotations.extractFromHtml(html)));
+        done();
+      });
+    });
+    
+    it("should find reply with <hr> separator.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "reply-separated-by-hr.html"), "utf-8", function (err, html) {
+        if (err)
+          return done(err);
+        
+        const reply = "<html><body><div>Hi<div>there</div></div></body></html>";
+        assert.equal(reply, removeWhitespace(quotations.extractFromHtml(html)));
+        done();
+      });
+    });
+    
+    it("should use fixtures to test ExtractFromHtml method.", function (done) {
+      // List the fixtures.
+      const htmlRepliesPath = path.join("tests", "fixtures", "html_replies");
+      return fs.readdir(htmlRepliesPath, (err, files) => {
+        if (err)
+          return done(err);
+        
+        // Iterate on the files we found.
+        return async.eachSeries(files, (file, nextFile) => {            
+          // Read the file.
+          return fs.readFile(path.join(htmlRepliesPath, file), "utf-8", (err, html) => {
+            if (err)
+              return nextFile(err);
+            
+            const replyHtml = quotations.extractFromHtml(html);
+            const replyPlain = utils.htmlToText(replyHtml);
+            const file2 = file;
+            
+            assert.equal(
+              removeWhitespace("Hi. I am fine.\n\nThanks,\nAlex"),
+              removeWhitespace(replyPlain));
+              
+            return nextFile();
+          });
+        }, done);
+      });
     });
   });
 });
