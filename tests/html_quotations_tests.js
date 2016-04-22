@@ -115,7 +115,7 @@ describe("Html Quotations", function () {
           </div>
         </div>`;
         
-      const reply = "<html><body>Reply        </body></html>";
+      const reply = "<html><body>Reply         </body></html>";
         
       assert.equal(reply, quotations.extractFromHtml(messageBody));
     });
@@ -143,7 +143,7 @@ describe("Html Quotations", function () {
         "</blockquote>";
         
       assert.equal(
-        removeWhitespace("<html><body>" + messageBody + "</body></html>"), 
+        removeWhitespace("<html><body>Message</body></html>"), 
         removeWhitespace(quotations.extractFromHtml(messageBody)));
     });
     
@@ -239,10 +239,10 @@ describe("Html Quotations", function () {
     });
   });
   
-  describe("Fixtures", function () {
+  describe("Talon fixtures", function () {
     
     it("should find reply in OLK src body section.", function (done) {
-      return fs.readFile(path.join("tests", "fixtures", "OLK_SRC_BODY_SECTION.html"), "utf-8", function (err, html) {
+      return fs.readFile(path.join("tests", "fixtures", "talon", "OLK_SRC_BODY_SECTION.html"), "utf-8", function (err, html) {
         if (err)
           return done(err);
         
@@ -253,11 +253,11 @@ describe("Html Quotations", function () {
     });
     
     it("should find reply with <hr> separator.", function (done) {
-      return fs.readFile(path.join("tests", "fixtures", "reply-separated-by-hr.html"), "utf-8", function (err, html) {
+      return fs.readFile(path.join("tests", "fixtures", "talon", "reply-separated-by-hr.html"), "utf-8", function (err, html) {
         if (err)
           return done(err);
         
-        const reply = "<html><body><div>Hi<div>there</div></div></body></html>";
+        const reply = "<html><body><div>Hi<div>there</div><div>Bob<hr/><br/></div></div></body></html>";
         assert.equal(reply, removeWhitespace(quotations.extractFromHtml(html)));
         done();
       });
@@ -265,7 +265,7 @@ describe("Html Quotations", function () {
     
     it("should use fixtures to test ExtractFromHtml method.", function (done) {
       // List the fixtures.
-      const htmlRepliesPath = path.join("tests", "fixtures", "html_replies");
+      const htmlRepliesPath = path.join("tests", "fixtures", "talon", "html_replies");
       return fs.readdir(htmlRepliesPath, (err, files) => {
         if (err)
           return done(err);
@@ -279,7 +279,6 @@ describe("Html Quotations", function () {
             
             const replyHtml = quotations.extractFromHtml(html);
             const replyPlain = utils.htmlToText(replyHtml);
-            const file2 = file;
             
             assert.equal(
               removeWhitespace("Hi. I am fine.\n\nThanks,\nAlex"),
@@ -287,6 +286,44 @@ describe("Html Quotations", function () {
               
             return nextFile();
           });
+        }, done);
+      });
+    });
+  });
+  
+  describe("Nylas fixtures", function () {
+    
+    it("should use fixtures to test ExtractFromHtml method.", function (done) {
+      // List the fixtures.
+      const htmlRepliesPath = path.join("tests", "fixtures", "nylas");
+      return fs.readdir(htmlRepliesPath, (err, files) => {
+        if (err)
+          return done(err);
+        
+        // Iterate on the files we found.
+        return async.eachSeries(files, (file, nextFile) => {      
+          // If this is one of the stripped files, skip.
+          if (file.indexOf("stripped") >= 0)
+            return nextFile();
+                        
+          // Read the file.
+          return fs.readFile(path.join(htmlRepliesPath, file), "utf-8", (err1, html) =>
+            fs.readFile(path.join(htmlRepliesPath, file.slice(0, -5) + "_stripped.html"), "utf-8", (err2, htmlStripped) => {
+              if (err1)
+                return nextFile(err1);
+                
+              if (err2)
+                return nextFile(err2);
+              
+              const replyHtml = quotations.extractFromHtml(html);          
+              const file2 = file;    
+              assert.equal(
+                removeWhitespace(htmlStripped),
+                removeWhitespace(replyHtml));
+                
+              return nextFile();
+            })
+          );
         }, done);
       });
     });

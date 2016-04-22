@@ -590,10 +590,10 @@ describe("Quotations", function () {
     });
   });
   
-  describe("Fixtures", function () {
+  describe("Talon fixtures", function () {
     
     it("should find reply in quotations share block.", function (done) {
-      return utils.parseEmlText(path.join("tests", "fixtures", "reply-quotations-share-block.eml"), function (err, text) {
+      return utils.parseEmlText(path.join("tests", "fixtures", "talon", "reply-quotations-share-block.eml"), function (err, text) {
         if (err)
           return done(err);
           
@@ -606,7 +606,7 @@ describe("Quotations", function () {
     
     it("should use fixtures to test ExtractFromPlain method.", function (done) {
       // List the fixtures.
-      const standardRepliesPath = path.join("tests", "fixtures", "standard_replies");
+      const standardRepliesPath = path.join("tests", "fixtures", "talon", "standard_replies");
       return fs.readdir(standardRepliesPath, function (err, files) {
         if (err)
           return done(err);

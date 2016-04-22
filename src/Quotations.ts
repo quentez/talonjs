@@ -51,7 +51,7 @@ export function extractFromHtml(messageBody: string): string {
     return messageBody;
   
   // Remove all newline characters from the provided body.
-  messageBody = messageBody.replace(/\r\n/g, "").replace(/\n/g, "");  
+  messageBody = messageBody.replace(/\r\n/g, " ").replace(/\n/g, " ");  
   messageBody = normalizeHtmlDocument(messageBody);
   
   // Parse the body as a Parse5 document.  
@@ -64,11 +64,10 @@ export function extractFromHtml(messageBody: string): string {
   
   // Try and cut the quote of one of the known types.
   const cutQuotations = HtmlQuotations.cutGmailQuote(xmlDocument)
-    || HtmlQuotations.cutZimbraQuote(xmlDocument)
-    || HtmlQuotations.cutBlockquote(xmlDocument)
-    || HtmlQuotations.cutMicrosoftQuote(xmlDocument)
-    || HtmlQuotations.cutById(xmlDocument)
-    || HtmlQuotations.cutFromBlock(xmlDocument);
+     || HtmlQuotations.cutZimbraQuote(xmlDocument)
+     || HtmlQuotations.cutBlockquote(xmlDocument)
+     || HtmlQuotations.cutMicrosoftQuote(xmlDocument)
+     || HtmlQuotations.cutById(xmlDocument);
     
   // Keep a copy of the original document around.
   const xmlDocumentCopy = xmlDocument.cloneNode(true);

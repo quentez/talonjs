@@ -114,7 +114,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
  */
 export function cutGmailQuote(document: Document): boolean {
   // Find the first element that fits our criteria.
-  const gmailQuote = <Node>XPath.select("//*[local-name(.)='div' and contains(@class, 'gmail_quote')]", document, true);
+  const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
   
   // If no quote was found, or if that quote was a forward, return false.
   if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, TalonRegexp.Forward)))
@@ -258,10 +258,8 @@ export function cutFromBlock(document: Document): boolean {
     // Find the parent of the outermost div for this block.
     let parentDiv: Node;
     while (block1.parentNode) {
-      if (block1.nodeName === "div") {
+      if (block1.nodeName === "div")
         parentDiv = block1;
-        break;
-      }
       
       block1 = block1.parentNode;
     }
