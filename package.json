@@ -6,6 +6,7 @@
   "repository": "https://github.com/quentez/talonjs",
   "scripts": {
     "test": "node node_modules/mocha/bin/_mocha tests/*.js",
+    "pretest": "node node_modules/typescript/bin/tsc",
     "prepublish": "node node_modules/typescript/bin/tsc"
   },
   "author": "FrontApp Inc.",
