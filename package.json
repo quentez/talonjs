@@ -5,14 +5,8 @@
   "main": "bin/Talon.js",
   "repository": "https://github.com/quentez/talonjs",
   "scripts": {
-    "prepublish": [
-      "node node_modules/typings/dist/bin.js install",
-      "node node_modules/typescript/bin/tsc"
-    ],
-    "pretest": [
-      "node node_modules/typings/dist/bin.js install",
-      "node node_modules/typescript/bin/tsc"
-    ],
+    "prepublish": "node node_modules/typings/dist/bin.js install && node node_modules/typescript/bin/tsc",
+    "pretest": "node node_modules/typings/dist/bin.js install && node node_modules/typescript/bin/tsc",
     "test": "node node_modules/mocha/bin/_mocha tests/*.js"
   },
   "author": "FrontApp Inc.",
