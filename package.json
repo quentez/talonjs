@@ -1,5 +1,5 @@
 {
-  "name": "talonjs",
+  "name": "talonjs", 
   "version": "1.0.0",
   "description": "Javascript port of the Mailgun/Talon library.",
   "main": "bin/Talon.js",
