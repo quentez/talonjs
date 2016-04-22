@@ -1,13 +1,19 @@
 {
-  "name": "talonjs", 
+  "name": "talonjs",
   "version": "1.0.0",
   "description": "Javascript port of the Mailgun/Talon library.",
   "main": "bin/Talon.js",
   "repository": "https://github.com/quentez/talonjs",
   "scripts": {
-    "test": "node node_modules/mocha/bin/_mocha tests/*.js",
-    "pretest": "node node_modules/typescript/bin/tsc",
-    "prepublish": "node node_modules/typescript/bin/tsc"
+    "prepublish": [
+      "node node_modules/typings/dist/bin.js install",
+      "node node_modules/typescript/bin/tsc"
+    ],
+    "pretest": [
+      "node node_modules/typings/dist/bin.js install",
+      "node node_modules/typescript/bin/tsc"
+    ],
+    "test": "node node_modules/mocha/bin/_mocha tests/*.js"
   },
   "author": "FrontApp Inc.",
   "license": "ISC",
@@ -16,7 +22,8 @@
     "front-async": "0.9.2-1",
     "mailparser": "0.5.3",
     "mocha": "2.4.5",
-    "typescript": "^1.8.10"
+    "typescript": "1.8.10",
+    "typings": "0.8.1"
   },
   "dependencies": {
     "cheerio": "0.20.0",
