@@ -19,9 +19,12 @@ import * as HtmlQuotations from "./HtmlQuotations";
  * @param {string} messageBody - The plain text body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromPlain(messageBody: string): string {
+export function extractFromPlain(messageBody: string): {
+  body: string,
+  didFindQuote: boolean
+} {
   if (!messageBody && !messageBody.trim())
-    return messageBody;
+    return { body: messageBody, didFindQuote: false };
   
   // Prepare the provided message body.
   const delimiter = findDelimiter(messageBody);
@@ -30,14 +33,14 @@ export function extractFromPlain(messageBody: string): string {
   // Only take the X first lines.
   const lines = splitLines(messageBody).slice(0, TalonConstants.MaxLinesCount);
   const markers = markMessageLines(lines);
-  const { lastMessageLines } = processMarkedLines(lines, markers);
+  const { wereLinesDeleted, lastMessageLines } = processMarkedLines(lines, markers);
   
   // Concatenate the lines, change links back, strip and return.
   messageBody = lastMessageLines.join(delimiter);
   messageBody = postProcess(messageBody);
   
   // Return the extracted message.
-  return messageBody;
+  return { body: messageBody, didFindQuote: wereLinesDeleted };
 }
 
 /**

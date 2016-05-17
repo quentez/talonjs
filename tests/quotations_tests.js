@@ -16,7 +16,7 @@ describe("Quotations", function () {
         "On 11-Apr-2011, at 6:54 PM, Roman Tkachenko <romant@example.com> wrote:\n\n" +
         ">\n> Test\n>\n> Roman";
 
-      assert.equal("Test reply", quotations.extractFromPlain(messageBody));
+      assert.equal("Test reply", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect samsung-specific \"<somebody> wrote\".", function () {
@@ -24,7 +24,7 @@ describe("Quotations", function () {
         "Sent from Samsung MobileName <address@example.com> wrote:\n\n" +
         ">\n> Test\n>\n> Roman";
 
-      assert.equal("Test reply", quotations.extractFromPlain(messageBody));
+      assert.equal("Test reply", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"on <date> wrote <somebody>\".", function () {
@@ -32,7 +32,7 @@ describe("Quotations", function () {
         "Op 13-02-2014 3:18 schreef Julius Caesar <pantheon@rome.com>:\n\n" +
         "Veniam laborum mlkshk kale chips authentic. Normcore mumblecore laboris, fanny pack readymade eu blog chia pop-up freegan enim master cleanse.\n";
 
-      assert.equal("Lorem", quotations.extractFromPlain(messageBody));
+      assert.equal("Lorem", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"on <date> <somebody> wrote\", date with slashes.", function () {
@@ -40,7 +40,7 @@ describe("Quotations", function () {
         "On 04/19/2011 07:10 AM, Roman Tkachenko wrote:\n\n" +
         ">\n> Test.\n>\n> Roman";
 
-      assert.equal("Test reply", quotations.extractFromPlain(messageBody));
+      assert.equal("Test reply", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect date+time email splitter.", function () {
@@ -49,7 +49,7 @@ describe("Quotations", function () {
         "postmaster@sandboxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.mailgun.org>:\n\n" +
         "> First from site\n>\n    ";
 
-      assert.equal("Test reply", quotations.extractFromPlain(messageBody));
+      assert.equal("Test reply", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect pattern \"on <date> <somebody> wrote\" with space in front.", function () {
@@ -58,7 +58,7 @@ describe("Quotations", function () {
         "r+7f1b094ceb90e18cca93d53d3703feae@example.com> wrote:\n\n\n" +
         ">**\n>  Blah-blah-blah";
 
-      assert.equal("Thanks Thanmai", quotations.extractFromPlain(messageBody));
+      assert.equal("Thanks Thanmai", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect pattern \"on <date> <somebody> sent\".", function () {
@@ -66,27 +66,27 @@ describe("Quotations", function () {
         "On 11-Apr-2011, at 6:54 PM, Roman Tkachenko <romant@example.com> sent:\n\n" +
         ">\n> Test\n>\n> Roman";
 
-      assert.equal("Test reply", quotations.extractFromPlain(messageBody));
+      assert.equal("Test reply", quotations.extractFromPlain(messageBody).body);
     });
 
     it("shouldn't detect quote for line starting with \"on\".", function () {
       const messageBody = "Blah-blah-blah\nOn blah-blah-blah";
-      assert.equal(messageBody, quotations.extractFromPlain(messageBody));
+      assert.equal(messageBody, quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect quote with splitter on same line.", function () {
       // Reply lines and "on <date> <person> wrote" splitter pattern are on the same line.
       const messageBody1 = "reply On Wed, Apr 4, 2012 at 3:59 PM, bob@example.com wrote:\n> Hi";
-      assert.equal("reply", quotations.extractFromPlain(messageBody1));
+      assert.equal("reply", quotations.extractFromPlain(messageBody1).body);
 
       // Test pattern "--- on <date> <person> wrote" with reply text on the same line.
       const messageBody2 = "reply--- On Wed, Apr 4, 2012 at 3:59 PM, me@domain.com wrote:\n> Hi";
-      assert.equal("reply", quotations.extractFromPlain(messageBody2));
+      assert.equal("reply", quotations.extractFromPlain(messageBody2).body);
 
       // Test pattern "--- on <date> <person> wrote" with reply text containing "-" symbol.
       const messageBody3 = "reply\nbla-bla - bla--- On Wed, Apr 4, 2012 at 3:59 PM, me@domain.com wrote:\n> Hi";
       const reply3 = "reply\nbla-bla - bla";
-      assert.equal(reply3, quotations.extractFromPlain(messageBody3));
+      assert.equal(reply3, quotations.extractFromPlain(messageBody3).body);
     });
 
     function checkPatternOriginalMessage(originalMessageIndicator) {
@@ -94,7 +94,7 @@ describe("Quotations", function () {
         `-----${originalMessageIndicator}-----\n\n` +
         "Test";
 
-      assert.equal("Test reply", quotations.extractFromPlain(messageBody));
+      assert.equal("Test reply", quotations.extractFromPlain(messageBody).body);
     }
 
     it("should detect pattern \"original message\" in English.", function () {
@@ -115,7 +115,7 @@ describe("Quotations", function () {
       const messageBody = "On 04/19/2011 07:10 AM, Roman Tkachenko wrote:\n\n" +
         ">\n> Test\nTest reply";
 
-      assert.equal("Test reply", quotations.extractFromPlain(messageBody));
+      assert.equal("Test reply", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect message around quote.", function () {
@@ -125,7 +125,7 @@ describe("Quotations", function () {
         "Regards, Roman";
       const reply = "Test reply\n\nRegards, Roman";
 
-      assert.equal(reply, quotations.extractFromPlain(messageBody));
+      assert.equal(reply, quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect message around nested quote.", function () {
@@ -137,7 +137,7 @@ describe("Quotations", function () {
         "Regards, Roman";
       const reply = "Test reply\nRegards, Roman";
 
-      assert.equal(reply, quotations.extractFromPlain(messageBody));
+      assert.equal(reply, quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect quote with separator on 2 lines.", function () {
@@ -148,7 +148,7 @@ describe("Quotations", function () {
         "Regards, Roman";
       const reply = "Test reply\n\nRegards, Roman";
 
-      assert.equal(reply, quotations.extractFromPlain(messageBody));
+      assert.equal(reply, quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect quote with separator on 3 lines.", function () {
@@ -158,7 +158,7 @@ describe("Quotations", function () {
         "wrote:\n\n" +
         "Test message\n";
 
-      assert.equal("Test reply", quotations.extractFromPlain(messageBody));
+      assert.equal("Test reply", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect short quote.", function () {
@@ -166,7 +166,7 @@ describe("Quotations", function () {
         "On 04/19/2011 07:10 AM, Roman Tkachenko wrote:\n\n" +
         "> Hello";
 
-      assert.equal("Hi", quotations.extractFromPlain(messageBody));
+      assert.equal("Hi", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect quote with indentation.", function () {
@@ -175,7 +175,7 @@ describe("Quotations", function () {
         "Brunch mumblecore pug Marfa tofu, irure taxidermy hoodie readymade pariatur.\n\t";
       const reply = "YOLO salvia cillum kogi typewriter mumblecore cardigan skateboard Austin.";
 
-      assert.equal(reply, quotations.extractFromPlain(messageBody));
+      assert.equal(reply, quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect short quote with newline.", function () {
@@ -189,7 +189,7 @@ describe("Quotations", function () {
         "Mark\n\n" +
         "Sent from Acompli";
 
-      assert.equal("Btw blah blah...", quotations.extractFromPlain(messageBody));
+      assert.equal("Btw blah blah...", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect pattern \"<date> <email>\" with unicode.", function () {
@@ -197,7 +197,7 @@ describe("Quotations", function () {
         "2011/4/7 Nathan \xd0\xb8ova <support@example.com>\n\n"
         ">  Cool beans, scro";
 
-      assert.equal("Replying ok", quotations.extractFromPlain(messageBody));
+      assert.equal("Replying ok", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"From\" block in English.", function () {
@@ -208,7 +208,7 @@ describe("Quotations", function () {
         "Subject: The manager has commented on your Loop\n\n" +
         "Blah-blah-blah\n";
 
-      assert.equal("Allo! Follow up MIME!", quotations.extractFromPlain(messageBody));
+      assert.equal("Allo! Follow up MIME!", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"From\" block in German.", function () {
@@ -219,7 +219,7 @@ describe("Quotations", function () {
         "Betreff: The manager has commented on your Loop\n\n" +
         "Blah-blah-blah\n";
 
-      assert.equal("Allo! Follow up MIME!", quotations.extractFromPlain(messageBody));
+      assert.equal("Allo! Follow up MIME!", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect multiline \"From\" block in French.", function () {
@@ -230,7 +230,7 @@ describe("Quotations", function () {
         "Objet : Follow Up\n\n" +
         "Blah-blah-blah\n";
 
-      assert.equal("Lorem ipsum", quotations.extractFromPlain(messageBody));
+      assert.equal("Lorem ipsum", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"From\" block in French.", function () {
@@ -238,7 +238,7 @@ describe("Quotations", function () {
         "Le 23 janv. 2015 à 22:03, Brendan xxx <brendan.xxx@xxx.com<mailto:brendan.xxx@xxx.com>> a écrit:\n\n" +
         "Bonjour!";
 
-      assert.equal("Lorem ipsum", quotations.extractFromPlain(messageBody));
+      assert.equal("Lorem ipsum", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"From\" block in Polish.", function () {
@@ -247,7 +247,7 @@ describe("Quotations", function () {
         "napisał:\n\n"
         "Blah!\n";
 
-      assert.equal("Lorem ipsum", quotations.extractFromPlain(messageBody));
+      assert.equal("Lorem ipsum", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"From\" block in Danish.", function () {
@@ -258,7 +258,7 @@ describe("Quotations", function () {
         "Emne: The manager has commented on your Loop\n\n" +
         "Blah-blah-blah\n";
 
-      assert.equal("Allo! Follow up MIME!", quotations.extractFromPlain(messageBody));
+      assert.equal("Allo! Follow up MIME!", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"From\" block in Swedish.", function () {
@@ -266,7 +266,7 @@ describe("Quotations", function () {
         "Den 14 september, 2015 02:23:18, Valentino Rudy (valentino@rudy.be) skrev:\n\n" +
         "Veniam laborum mlkshk kale chips authentic. Normcore mumblecore laboris, fanny pack readymade eu blog chia pop-up freegan enim master cleanse.\n";
 
-      assert.equal("Lorem", quotations.extractFromPlain(messageBody));
+      assert.equal("Lorem", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"From\" block in Norwegian.", function () {
@@ -274,7 +274,7 @@ describe("Quotations", function () {
         "På 14 september 2015 på 02:23:18, Valentino Rudy (valentino@rudy.be) skrev:\n\n" +
         "Veniam laborum mlkshk kale chips authentic. Normcore mumblecore laboris, fanny pack readymade eu blog chia pop-up freegan enim master cleanse.\n";
 
-      assert.equal("Lorem", quotations.extractFromPlain(messageBody));
+      assert.equal("Lorem", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"From\" block in Dutch.", function () {
@@ -282,7 +282,7 @@ describe("Quotations", function () {
         "Op 17-feb.-2015, om 13:18 heeft Julius Caesar <pantheon@rome.com> het volgende geschreven:\n\n" +
         "Small batch beard laboris tempor, non listicle hella Tumblr heirloom.\n";
 
-      assert.equal("Gluten-free culpa lo-fi et nesciunt nostrud.", quotations.extractFromPlain(messageBody));
+      assert.equal("Gluten-free culpa lo-fi et nesciunt nostrud.", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect a false-positive quote marker.", function () {
@@ -290,7 +290,7 @@ describe("Quotations", function () {
         ">>> >>>  http://www.domain.com <<<\n" +
         "Visit our site by clicking the link above";
 
-      assert.equal(messageBody, quotations.extractFromPlain(messageBody));
+      assert.equal(messageBody, quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect quote with link closed on quote marker line.", function () {
@@ -300,7 +300,7 @@ describe("Quotations", function () {
         ">  <bob@example.com <mailto:bob@example.com> >\n\n" +
         "Requester: ";
 
-      assert.equal("8.45am-1pm", quotations.extractFromPlain(messageBody));
+      assert.equal("8.45am-1pm", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect quote with link breaking quote sequence.", function () {
@@ -311,7 +311,7 @@ describe("Quotations", function () {
         "(http://example.com/c/YzOTYzMmE) >\n" +
         "> life is short. (http://example.com/c/YzMmE)\n>\n";
 
-      assert.equal("Blah", quotations.extractFromPlain(messageBody1));
+      assert.equal("Blah", quotations.extractFromPlain(messageBody1).body);
 
       // Link starts after some text on one line and ends on another.
       const messageBody2 = "Blah\n\n" +
@@ -319,7 +319,7 @@ describe("Quotations", function () {
         "> [Ticket #50] test from bob\n" +
         ">\n> View ticket (http://example.com/action\n_nonce=3dd518)\n>\n";
 
-      assert.equal("Blah", quotations.extractFromPlain(messageBody2));
+      assert.equal("Blah", quotations.extractFromPlain(messageBody2).body);
     });
 
     it("should detect \"From\" that starts with date.", function () {
@@ -327,7 +327,7 @@ describe("Quotations", function () {
         "Date: Wed, 16 May 2012 00:15:02 -0600\n" +
         "To: klizhentas@example.com";
 
-      assert.equal("Blah", quotations.extractFromPlain(messageBody));
+      assert.equal("Blah", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect bold \"From\" block.", function () {
@@ -338,7 +338,7 @@ describe("Quotations", function () {
         "\t*To:* travis@example.com\n" +
         "\t*Subject:* Hello\n\n";
 
-      assert.equal("Hi", quotations.extractFromPlain(messageBody));
+      assert.equal("Hi", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should detect \"Date\" block with weird format.", function () {
@@ -348,7 +348,7 @@ describe("Quotations", function () {
         "To: bob@example.com\n" +
         "Subject: [Ticket #8] Test\n";
 
-      assert.equal("Blah", quotations.extractFromPlain(messageBody));
+      assert.equal("Blah", quotations.extractFromPlain(messageBody).body);
     });
 
     it("shouldn't exclude quote for forwarded message.", function () {
@@ -361,7 +361,7 @@ describe("Quotations", function () {
         "To: rob@example.com\n\n" +
         "Text";
 
-      assert.equal(messageBody, quotations.extractFromPlain(messageBody));
+      assert.equal(messageBody, quotations.extractFromPlain(messageBody).body);
     });
 
     it("should exclude forwarded message in reply quote.", function () {
@@ -375,12 +375,12 @@ describe("Quotations", function () {
         "line subject\n" +
         "To: rob@example.com\n\n";
 
-      assert.equal("Blah", quotations.extractFromPlain(messageBody));
+      assert.equal("Blah", quotations.extractFromPlain(messageBody).body);
     });
 
     it("should pre-process and post-process links.", function () {
       const messageBody = "<http://link1> <http://link2>";
-      assert.equal(messageBody, quotations.extractFromPlain(messageBody));
+      assert.equal(messageBody, quotations.extractFromPlain(messageBody).body);
     });
   });
 
@@ -597,7 +597,7 @@ describe("Quotations", function () {
         if (err)
           return done(err);
 
-        const strippedText = quotations.extractFromPlain(text);
+        const strippedText = quotations.extractFromPlain(text).body;
         assert.isOk(strippedText);
         assert.equal(strippedText.indexOf("From"), -1);
         done();
@@ -628,7 +628,7 @@ describe("Quotations", function () {
             // Compare the results.
             checkText: (next, results) => {
               // Try and extract the reply from the loaded message.
-              const extractedText = quotations.extractFromPlain(results.emailText);
+              const extractedText = quotations.extractFromPlain(results.emailText).body;
 
               // Compare the reply text and the extracted text.
               assert.equal((results.replyText || "Hello").replace(/\r\n/g, "\n").trim(), extractedText);
