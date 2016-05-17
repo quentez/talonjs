@@ -46,9 +46,12 @@ export function extractFromPlain(messageBody: string): string {
  * @param {string} messageBody - The html body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromHtml(messageBody: string): string {
+export function extractFromHtml(messageBody: string): {
+  body: string,
+  didFindQuote: boolean
+} {
   if (!messageBody && !messageBody.trim())
-    return messageBody;
+    return { body: messageBody, didFindQuote: false };
   
   // Remove all newline characters from the provided body.
   messageBody = messageBody.replace(/\r\n/g, " ").replace(/\n/g, " ");  
@@ -81,7 +84,7 @@ export function extractFromHtml(messageBody: string): string {
   
   // Stop here if the message is too long.
   if (lines.length > TalonConstants.MaxLinesCount)
-    return messageBody;
+    return { body: messageBody, didFindQuote: false };
     
   // Collect the checkpoints on each line.
   const lineCheckpoints = lines.map(line => {
@@ -105,16 +108,19 @@ export function extractFromHtml(messageBody: string): string {
         quotationCheckpoints[checkpoint] = true;
   // Otherwise, if we found a known quote earlier, return the content before.
   else if (cutQuotations)
-    return xmlDomSerializer.serializeToString(xmlDocumentCopy);
+    return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy), didFindQuote: true };
   // Finally, if no quote was found, return the original HTML.
   else
-    return messageBody;
+    return { body: messageBody, didFindQuote: false };
     
   // Remove the tags that we marked as quotation from the HTML.
   HtmlQuotations.deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
   
   // Serialize and return.
-  return xmlDomSerializer.serializeToString(xmlDocumentCopy);
+  return {
+    body: xmlDomSerializer.serializeToString(xmlDocumentCopy),
+    didFindQuote: true
+  }
 }
   
 /*

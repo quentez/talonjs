@@ -24,7 +24,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body>Reply</body></html>";
 
-      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("should find the reply with the quotate splitter outside the blockquote.", function () {
@@ -40,7 +40,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body>Reply</body></html>";
 
-      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("should find the reply with a regular blockquote before the splitter.", function () {
@@ -57,7 +57,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body>Reply<blockquote>Regular</blockquote></body></html>";
 
-      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("should find the reply with no blockquotes.", function () {
@@ -80,11 +80,11 @@ describe("Html Quotations", function () {
 
       assert.equal(
         removeWhitespace(reply),
-        removeWhitespace(quotations.extractFromHtml(messageBody)));
+        removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("should find an empty reply from an empty body.", function () {
-      assert.equal("", quotations.extractFromHtml(""));
+      assert.equal("", quotations.extractFromHtml("").body);
     });
 
     it("should validate that we always output valid HTML.", function () {
@@ -99,7 +99,7 @@ describe("Html Quotations", function () {
         "</div>\n\n" +
         "<div/>\n";
 
-      const result = quotations.extractFromHtml(messageBody);
+      const result = quotations.extractFromHtml(messageBody).body;
       assert.isAtLeast(result.indexOf("<html>"), 0);
       assert.isAtLeast(result.indexOf("</html>"), 0);
     });
@@ -117,7 +117,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body>Reply         </body></html>";
 
-      assert.equal(reply, quotations.extractFromHtml(messageBody));
+      assert.equal(reply, quotations.extractFromHtml(messageBody).body);
     });
 
     it("should strip Gmail quote compact.", function () {
@@ -130,7 +130,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body>Reply</body></html>";
 
-      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("shouldn't strip Gmail quote in blockquote.", function () {
@@ -144,7 +144,7 @@ describe("Html Quotations", function () {
 
       assert.equal(
         removeWhitespace("<html><body>Message</body></html>"),
-        removeWhitespace(quotations.extractFromHtml(messageBody)));
+        removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("should detect reply with disclaimer after quote.", function () {
@@ -179,7 +179,7 @@ describe("Html Quotations", function () {
 
       assert.equal(
         removeWhitespace(reply),
-        removeWhitespace(quotations.extractFromHtml(messageBody)));
+        removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("should detect reply with \"date\" block splitter.", function () {
@@ -197,7 +197,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body><div>message<br/></div></body></html>";
 
-      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("should detect reply with \"from\" block splitter.", function () {
@@ -215,7 +215,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body><div>message<br/></div></body></html>";
 
-      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
     it("should detect reply with content in same element as \"from\" block splitter.", function () {
@@ -235,7 +235,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body><div>Blah<br/><br/></div></body></html>";
 
-      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody)));
+      assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
   });
 
@@ -247,7 +247,7 @@ describe("Html Quotations", function () {
           return done(err);
 
         const reply = "<html><body><div>Reply</div></body></html>";
-        assert.equal(reply, removeWhitespace(quotations.extractFromHtml(html)));
+        assert.equal(reply, removeWhitespace(quotations.extractFromHtml(html).body));
         done();
       });
     });
@@ -258,7 +258,7 @@ describe("Html Quotations", function () {
           return done(err);
 
         const reply = "<html><body><div>Hi<div>there</div><div>Bob<hr/><br/></div></div></body></html>";
-        assert.equal(reply, removeWhitespace(quotations.extractFromHtml(html)));
+        assert.equal(reply, removeWhitespace(quotations.extractFromHtml(html).body));
         done();
       });
     });
@@ -277,7 +277,7 @@ describe("Html Quotations", function () {
             if (err)
               return nextFile(err);
 
-            const replyHtml = quotations.extractFromHtml(html);
+            const replyHtml = quotations.extractFromHtml(html).body;
             const replyPlain = utils.htmlToText(replyHtml);
 
             assert.equal(
@@ -315,7 +315,7 @@ describe("Html Quotations", function () {
               if (err2)
                 return nextFile(err2);
 
-              const replyHtml = quotations.extractFromHtml(html);
+              const replyHtml = quotations.extractFromHtml(html).body;
               const file2 = file;
               assert.equal(
                 removeWhitespace(htmlStripped),
