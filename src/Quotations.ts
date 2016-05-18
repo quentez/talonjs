@@ -23,7 +23,7 @@ export function extractFromPlain(messageBody: string): {
   body: string,
   didFindQuote: boolean
 } {
-  if (!messageBody && !messageBody.trim())
+  if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
   
   // Prepare the provided message body.
@@ -53,7 +53,7 @@ export function extractFromHtml(messageBody: string): {
   body: string,
   didFindQuote: boolean
 } {
-  if (!messageBody && !messageBody.trim())
+  if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
   
   // Remove all newline characters from the provided body.
