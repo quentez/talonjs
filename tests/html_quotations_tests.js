@@ -328,6 +328,30 @@ describe("Html Quotations", function () {
       });
     });
   });
+  
+  describe("Front fixtures", function () {
+
+    it("should use fixtures to test ExtractFromHtml method.", function (done) {
+      // List the fixtures.
+      const htmlRepliesPath = path.join("tests", "fixtures", "front");
+      return fs.readdir(htmlRepliesPath, (err, files) => {
+        if (err)
+          return done(err);
+
+        // Iterate on the files we found.
+        return async.eachSeries(files, (file, nextFile) => {
+          // Read the file.
+          return fs.readFile(path.join(htmlRepliesPath, file), "utf-8", (err, html) => {
+            if (err)
+              return nextFile(err);
+
+            quotations.extractFromHtml(html);
+            return nextFile();
+          });
+        }, done);
+      });
+    });
+  });
 });
 
 function removeWhitespace(str) {

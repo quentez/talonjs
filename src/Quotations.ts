@@ -253,7 +253,7 @@ export function processMarkedLines(lines: string[], markers: string): {
   // Use lookbehind assertions to find overlapping entries. e.g. for "mtmtm".
   // Both "t" entries should be found.
   let inlineReplyMatch: any;
-  const inlineReplyRegexp = /(m)e*((?:t+e*)+)m/g;
+  const inlineReplyRegexp = /me*(te*)+m/g;
   while (inlineReplyMatch = inlineReplyRegexp.exec(markers)) {    
     // Long links could break a sequence of quotation lines,
     // but they shouldn't be considered an inline reply.
