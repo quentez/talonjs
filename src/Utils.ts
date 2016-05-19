@@ -91,8 +91,8 @@ export function elementToText(element: Node): string {
  * @return {string} The normalized HTML document.
  */
 export function normalizeHtmlDocument(document: string): string {
-  const matchStart = document.match(/^\s*(<html[^>]*>)?\s*(<head[^>]*>.*<\/head>)?\s*(<body[^>]*>)?/im);
-  const matchEnd = document.match(/(<\/body>)?\s*(<\/html>)?\s*$/im);
+  const matchStart = document.match(/^(\s*<html[^>]*>)?(\s*<head[^>]*>.*<\/head>)?(\s*<body[^>]*>)?/im);
+  const matchEnd = document.match(/(<\/body>\s*)?(<\/html>\s*)?$/im);
 
   if (!matchStart[3])
     document = matchStart[0].trim() + 
