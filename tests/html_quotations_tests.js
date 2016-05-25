@@ -330,10 +330,25 @@ describe("Html Quotations", function () {
   });
   
   describe("Front fixtures", function () {
+    
+    it("should correctly render Outlook comments.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_conditional_comments.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+          
+        // Extract the quote.
+        var replyHtml = quotations.extractFromHtml(html).body;
+        
+        // Make sure it doesn't contain the incriminating string.
+        assert.notInclude(replyHtml, "<![if !supportLists]>", "The reply does not keep Word comments");
+        assert.notInclude(replyHtml, "&lt;![if !supportLists]>", "The reply does not transform Word comments");
+        done();
+      });
+    });
 
-    it("should use fixtures to test ExtractFromHtml method.", function (done) {
+    it("should test emails that used to crash extractFromHtml.", function (done) {
       // List the fixtures.
-      const htmlRepliesPath = path.join("tests", "fixtures", "front");
+      const htmlRepliesPath = path.join("tests", "fixtures", "front", "crashers");
       return fs.readdir(htmlRepliesPath, (err, files) => {
         if (err)
           return done(err);

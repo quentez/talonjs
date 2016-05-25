@@ -61,7 +61,7 @@ export function extractFromHtml(messageBody: string): {
   messageBody = normalizeHtmlDocument(messageBody);
   
   // Parse the body as a Parse5 document.  
-  const document = Cheerio.load(messageBody);  
+  const document = loadHtmlAndFix(messageBody);
   const xmlDocument = xmlDomParser.parseFromString(document.xml());  
   
   // HACK.
@@ -322,4 +322,20 @@ function isSplitter(src: string): RegExpMatchArray {
     if (match)
       return match;
   }
+}
+
+/**
+ * Load an HTML string into a Cheerio document, 
+ * then fix HTML weirdness that could affect the rest of the process.
+ * 
+ * @param {string} src - The HTML string to load.
+ * @return {CheerioStatic} The newly created Cheerio document. 
+ */
+function loadHtmlAndFix(src: string): CheerioStatic {
+  const document = Cheerio.load(src);
+  
+  // Remove Word conditional comments.
+  document.root().find("*").contents().filter((n, e) => e.type === "directive" && e.name[0] === "!").remove();
+  
+  return document;
 }
