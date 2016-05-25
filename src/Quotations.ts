@@ -1,7 +1,7 @@
 import * as Cheerio from "cheerio";
 import * as XmlDom from "xmldom";
 
-const xmlDomParser = new XmlDom.DOMParser();
+const xmlDomParser = new XmlDom.DOMParser({ errorHandler: { warning: () => {}, error: () => {}, fatalError: (error) => { throw error; } }});
 const xmlDomSerializer = new XmlDom.XMLSerializer();
 
 import { findDelimiter, splitLines, matchStart, elementToText, normalizeHtmlDocument } from "./Utils";
