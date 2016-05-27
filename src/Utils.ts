@@ -65,7 +65,7 @@ export function elementToText(element: Node): string {
       if (node.nodeName.toLowerCase() === "li")
         text += "  * ";
         
-      // Add this element's text to the 
+      // Add this element's text to the result.
       text += nodeText.trim() + " ";
       
       // Add href to the output.
