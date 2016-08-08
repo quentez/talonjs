@@ -7,7 +7,7 @@ export const Delimiter = new RegExp("\\r?\\n");
 export const Forward = new RegExp("^[-]+[ ]*Forwarded message[ ]*[-]+$", "im");
 
 export const OnDateSomebodyWrote = new RegExp(
-  `(-*[>]?[ ]?(${
+  `-{0,100}[>]?[ ]?(${
     // Beginning of the line.
     [
       "On",       // English,
@@ -18,13 +18,13 @@ export const OnDateSomebodyWrote = new RegExp(
       "På",       // Norwegian
       "Den"       // Swedish, Danish
     ].join("|")
-  })[ ].*(${
+  })[ ].{0,100}(${
     // Date and sender separator.
     [
       ",",          // Most languages separate date and sender address by comma.
       "użytkownik"  // Polish date and sender address separator.
     ].join("|")
-  })(.*\\n){0,2}.*(${
+  })(.*\\n){0,2}.{0,100}(${
     // Ending of the line.
     [
       "wrote", "sent",                    // English
@@ -33,24 +33,24 @@ export const OnDateSomebodyWrote = new RegExp(
       "schreef", "verzond", "geschreven", // Dutch
       "schrieb",                          // German
       "skrev"                             // Norwegian, Swedish
-    ].join("|")    
-  }):?-*)`
+    ].join("|")
+  }):?-{0,100}`
 );
 
 export const OnDateWroteSomebody = new RegExp(
-  `(-*[>]?[ ]?(${
+  `-{0,100}[>]?[ ]?(${
     // Beginning of the line.
     [
-      "Op", 
+      "Op",
       "Am"  // German
     ].join("|")
-  })[ ].*(.*\\n){0,2}.*(${
+  })[ ].{0,100}(.*\\n){0,2}.{0,100}(${
     // Ending of the line.
     [
       "schreef", "verzond", "geschreven", // Dutch
       "schrieb"                           // German
     ].join("|")
-  })[ ]*.*:)`
+  }).{0,100}:`
 );
 
 export const Quotation = new RegExp(
@@ -58,7 +58,7 @@ export const Quotation = new RegExp(
     // Quotation border: splitter line or a number of quotation marker lines.
     "(?:" +
       "s" +
-      "|" + 
+      "|" +
       "(?:me*){2,}" +
     ")" +
     // Quotation lines could be marked as splitter or text, etc.
@@ -66,7 +66,7 @@ export const Quotation = new RegExp(
     // But we expect it to end with a quotation marker line.
     "me*" +
   ")" +
-   
+
   // After quotations should be text only or nothing at all.
   "[te]*$"
 );
@@ -86,13 +86,13 @@ export const EmptyQuotation = new RegExp(
 // ------Original Message------ or ---- Reply Message ----
 // With variations in other languages.
 export const OriginalMessage = new RegExp(
-  `[\\s]*[-]+[ ]*(${
+  `[\\s]*[-]+[ ]{0,100}(${
     [
       "Original Message", "Reply Message",            // English
       "Ursprüngliche Nachricht", "Antwort Nachricht", // German
       "Oprindelig meddelelse"                         // Danish
     ].join("|")
-  })[ ]*[-]+`, "i"
+  })[ ]{0,100}[-]+`, "i"
 );
 
 export const FromColonOrDateColon = new RegExp(
@@ -118,7 +118,7 @@ export const SplitterPatterns = [
   // Thu, 26 Jun 2014 14:00:51 +0400 Bob <bob@example.com>:
   new RegExp("\\S{3,10}, \\d\\d? \\S{3,10} 20\\d\\d,? \\d\\d?:\\d\\d(:\\d\\d)?( \\S+){3,6}@\\S+:"),
   // Sent from Samsung MobileName <address@example.com> wrote:
-  new RegExp("Sent from Samsung .*@.*> wrote")
+  new RegExp("Sent from Samsung .{0,100}@.{0,100}> wrote")
 ];
 
 export const Link = new RegExp("<(http://[^>]*)>");
