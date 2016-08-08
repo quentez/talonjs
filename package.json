@@ -7,7 +7,7 @@
   "scripts": {
     "prepublish": "node node_modules/typings/dist/bin.js install && node node_modules/typescript/bin/tsc",
     "pretest": "node node_modules/typings/dist/bin.js install && node node_modules/typescript/bin/tsc",
-    "test": "node node_modules/mocha/bin/_mocha -t 10000 tests/*.js"
+    "test": "node node_modules/mocha/bin/_mocha -t 20000 tests/*.js"
   },
   "author": "FrontApp Inc.",
   "license": "ISC",
