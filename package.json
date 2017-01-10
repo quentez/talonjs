@@ -5,8 +5,8 @@
   "main": "bin/Talon.js",
   "repository": "https://github.com/quentez/talonjs",
   "scripts": {
-    "prepublish": "node node_modules/typings/dist/bin.js install && node node_modules/typescript/bin/tsc",
-    "pretest": "node node_modules/typings/dist/bin.js install && node node_modules/typescript/bin/tsc",
+    "prepublish": "node node_modules/typescript/bin/tsc",
+    "pretest": "node node_modules/typescript/bin/tsc",
     "test": "node node_modules/mocha/bin/_mocha -t 20000 tests/*.js"
   },
   "author": "FrontApp Inc.",
@@ -19,8 +19,7 @@
     "mailparser": "0.6.1",
     "mocha": "3.2.0",
     "retyped-xpath-tsd-ambient": "^0.0.7-0",
-    "typescript": "2.1.4",
-    "typings": "2.1.0"
+    "typescript": "2.1.4"
   },
   "dependencies": {
     "cheerio": "0.22.0",
