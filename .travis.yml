@@ -6,9 +6,8 @@ cache:
   - node_modules
 deploy:
   provider: npm
-  email: quentin@frontapp.com
+  email: quentez
   api_key:
     secure: WBIfxyQKvIGrawYf8/0JdGO7j9ylvINRK30pLIcygxTORWXUrSBYxtAvOoi93yb6TrIcNGtxKc6VZbwsjQM5+k08ScxDFucfMIjN3EyYwv/P5ziLkL7+Mt28RO8GxoIdVFbqiW0ktrk+4Sp9phhq3aEynm134K9O6fdvIQe6FDYR4VzpWcgNkvT338llk8wd0l2lx12Mpp7BcyzuEOnMF9uDj6AkUpuf7DhLwkISMP3aBO1I27pBjqWZg1T9EoM0en5PwzAX/dMs1qS4LRIZkkIVewkJm5n5vHovO8FXxIaEDCwXONTvLXqHuFJk4wB1LUNc+tKHqu9GJqEQsujo9DZh59hkBTM/Hvk4tp3MbBxEa9XOXBfREeXkVBzejSEVgRsvlIrkNpg2gbN41PJTV1ioBXiSqv52tEuH6vddOoquYF8F7FNvf8ZlrgJoHK2M/FzjjfacRg8tNEPWlJHXbA24rZ2l1zvpkF7Pd5dLwf+mVFpzRG6PZz+uGg89KZJLv+kgZTD4skXc5glHbJeZW094NHxObm68wt+kvcDtWu7POQvhhzskcXeIdRa3wVAq1iALJzTArLpltwhqZo1W+1DcJASO8A6H9r0uOcQeUTY1LakIfglpLNY+00sV55eh5y+bnd/g6tZ4dM6OkNp1GQ/ZApaanzsUpRZprii7FQg=
   on:
-    tags: true
     repo: quentez/talonjs
