@@ -3,5 +3,8 @@ src/
 tests/
 typings/
 
+README.md
+
+.travis.yml
 tsconfig.json
-typings.json
+yarn.lock
