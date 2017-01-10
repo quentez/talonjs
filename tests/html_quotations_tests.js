@@ -197,6 +197,7 @@ describe("Html Quotations", function () {
 
       const reply = "<html><body><div>message<br/></div></body></html>";
 
+
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
@@ -317,6 +318,7 @@ describe("Html Quotations", function () {
 
               const replyHtml = quotations.extractFromHtml(html).body;
               const file2 = file;
+
               assert.equal(
                 removeWhitespace(htmlStripped),
                 removeWhitespace(replyHtml));
@@ -342,6 +344,21 @@ describe("Html Quotations", function () {
         // Make sure it doesn't contain the incriminating string.
         assert.notInclude(replyHtml, "<![if !supportLists]>", "The reply does not keep Word comments");
         assert.notInclude(replyHtml, "&lt;![if !supportLists]>", "The reply does not transform Word comments");
+        done();
+      });
+    });
+
+    it("should correctly detect tables.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_table.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+        // Extract the quote.
+        var replyHtml = quotations.extractFromHtml(html).body;
+
+        assert.equal(
+          removeWhitespace(utils.htmlToText(replyHtml)),
+          removeWhitespace(utils.htmlToText(html)));
         done();
       });
     });

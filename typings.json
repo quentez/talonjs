@@ -1,7 +1,0 @@
-{
-  "globalDependencies": {
-    "cheerio": "registry:dt/cheerio#0.17.0+20160407085313",
-    "xmldom": "registry:dt/xmldom#0.1.22+20160319053438",
-    "xpath": "registry:dt/xpath#0.0.7+20160316155526"
-  }
-}

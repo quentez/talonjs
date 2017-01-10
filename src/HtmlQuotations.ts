@@ -59,7 +59,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   count: number,
   isTagInQuotation: boolean
 } {
-  var isTagInQuotation = true;
+  let isTagInQuotation = true;
 
   // Check if this element is a quotation tag.
   if (quotationCheckpoints[count]) {
@@ -72,10 +72,13 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   }
   count++;
 
+  // If this a non-quote table, don't remove children.
+  const preserveTable = !isTagInQuotation && element.nodeName === 'table';
+
   // Process recursively.
   const quotationChildren = new Array<Node>(); // Collection of children in quotation.
 
-  if (count < nodeLimit)
+  if (count < nodeLimit && !preserveTable)
     for (let index = 0; index < element.childNodes.length; index++) {
       const node = element.childNodes.item(index);
       if (node.nodeType !== 1 || count >= nodeLimit)
