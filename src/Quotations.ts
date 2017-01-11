@@ -76,7 +76,7 @@ export function extractFromHtml(messageBody: string): {
      || HtmlQuotations.cutById(xmlDocument);
 
   // Keep a copy of the original document around.
-  const xmlDocumentCopy = xmlDocument.cloneNode(true);
+  const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
 
   // Add the checkpoints to the HTML tree.
   const numberOfCheckpoints = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
@@ -118,6 +118,10 @@ export function extractFromHtml(messageBody: string): {
 
   // Remove the tags that we marked as quotation from the HTML.
   HtmlQuotations.deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
+
+  // Fix quirk in XmlDom.
+  if (xmlDocumentCopy.nodeType === 9 && !xmlDocumentCopy.documentElement)
+    xmlDocumentCopy.documentElement = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
   // Serialize and return.
   return {
