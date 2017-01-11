@@ -27,7 +27,7 @@ describe("Html Quotations", function () {
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
-    it("should find the reply with the quotate splitter outside the blockquote.", function () {
+    it("should find the reply with the quotation splitter outside the blockquote.", function () {
       const messageBody = "Reply\n\n" +
         "<div>\n" +
         "On 11-Apr-2011, at 6:54 PM, Bob &lt;bob@example.com&gt; wrote:\n" +
@@ -359,6 +359,17 @@ describe("Html Quotations", function () {
         assert.equal(
           removeWhitespace(utils.htmlToText(replyHtml)),
           removeWhitespace(utils.htmlToText(html)));
+        done();
+      });
+    });
+
+    it("should not crash when no XmlDom document is found.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_no_doc.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+        // Extract the quote.
+        quotations.extractFromHtml(html).body;
         done();
       });
     });
