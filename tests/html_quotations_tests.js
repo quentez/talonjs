@@ -348,6 +348,19 @@ describe("Html Quotations", function () {
       });
     });
 
+    it("should correctly render emails with From: not followed by @ or Sent.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_from.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+        // Extract the quote.
+        var replyHtml = quotations.extractFromHtml(html).body;
+
+        assert.include(replyHtml, "29 missing", "The reply does not cut From:");
+        done();
+      });
+    });
+
     it("should correctly detect tables.", function (done) {
       return fs.readFile(path.join("tests", "fixtures", "front", "email_with_table.html"), "utf-8", (err, html) => {
         if (err)
