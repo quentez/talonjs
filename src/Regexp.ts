@@ -95,11 +95,18 @@ export const OriginalMessage = new RegExp(
   })[ ]{0,100}[-]+`, "i"
 );
 
-export const FromColonOrDateColon = new RegExp(
+export const FromColon = new RegExp(
   `(_+\\r?\\n)?[\\s]*(:?[*]?${
     [
-      "From", "Van", "De", "Von", "Fra", "Från",      // "From" in different languages.
-      "Date", "Datum", "Envoyé", "Skickat", "Sendt",  // "Date" in different languages.
+      "From", "Van", "De", "Von", "Fra", "Från"      // "From" in different languages.
+    ].join("|")
+  })[\\s]?:.*[\\n]?.*(@|Sent)`, "i"
+);
+
+export const DateColon = new RegExp(
+  `(_+\\r?\\n)?[\\s]*(:?[*]?${
+    [
+      "Date", "Datum", "Envoyé", "Skickat", "Sendt"  // "Date" in different languages.
     ].join("|")
   })[\\s]?:[*]? .*`, "i"
 );
@@ -108,7 +115,8 @@ export const SplitterPatterns = [
   OriginalMessage,
   OnDateSomebodyWrote,
   OnDateWroteSomebody,
-  FromColonOrDateColon,
+  FromColon,
+  DateColon,
   // 02.04.2012 14:20 пользователь "bob@example.com" <
   // bob@xxx.mailgun.org> написал:
   new RegExp("(\\d+\\/\\d+\\/\\d+|\\d+\\.\\d+\\.\\d+)[^]*@"),
