@@ -102,7 +102,7 @@ export const FromColon = new RegExp(
     ].join("|")
   })[\\s]?:.*[\\n]?.*(@|${
     [
-      "Sent"                                         // "Sent" in different languages.
+      "Sent", "Verzonden", "Envoyé", "Gesendet", "Sendt", "Skickat"     // "Sent" in different languages.
     ].join("|")
   })`, "i"
 );
