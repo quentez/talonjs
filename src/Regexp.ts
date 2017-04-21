@@ -100,7 +100,11 @@ export const FromColon = new RegExp(
     [
       "From", "Van", "De", "Von", "Fra", "Från"      // "From" in different languages.
     ].join("|")
-  })[\\s]?:.*[\\n]?.*(@|Sent)`, "i"
+  })[\\s]?:.*[\\n]?.*(@|${
+    [
+      "Sent"                                         // "Sent" in different languages.
+    ].join("|")
+  })`, "i"
 );
 
 export const DateColon = new RegExp(
