@@ -13,3 +13,4 @@ deploy:
   on:
     repo: quentez/talonjs
     tags: true
+    branch: master

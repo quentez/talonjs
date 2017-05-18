@@ -100,7 +100,7 @@ export const FromColon = new RegExp(
     [
       "From", "Van", "De", "Von", "Fra", "Från"      // "From" in different languages.
     ].join("|")
-  })[\\s]?:.*[\\n]?.*(@|${
+  })[\\s]?:[\\S\\s]*(@|${
     [
       "Sent", "Verzonden", "Envoyé", "Gesendet", "Sendt", "Skickat"     // "Sent" in different languages.
     ].join("|")
