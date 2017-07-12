@@ -145,7 +145,7 @@ describe("Html Quotations", function () {
       assert.equal(
         removeWhitespace("<html><body>Message<blockquoteclass=\"gmail_quote\">" +
           "<divclass=\"gmail_default\">MynameisWilliamShakespeare.<br/></div>" +
-          "</blockquote></body></html"),
+          "</blockquote></body></html>"),
         removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
