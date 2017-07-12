@@ -123,7 +123,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
  */
 export function cutGmailQuote(document: Document): boolean {
   // Find the first element that fits our criteria.
-  const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
+  const gmailQuote = <Node>XPath.select("//div[contains(@class, 'gmail_quote')]", document, true);
 
   // If no quote was found, or if that quote was a forward, return false.
   if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, TalonRegexp.Forward)))
