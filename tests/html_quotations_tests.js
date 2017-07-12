@@ -413,5 +413,5 @@ describe("Html Quotations", function () {
 });
 
 function removeWhitespace(str) {
-  return str && str.replace(/\s/g, "");
+  return str && str.replace(/\s/g, "").replace(/&nbsp;/g, "");
 }

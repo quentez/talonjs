@@ -236,7 +236,7 @@ export function cutById(document: Document): boolean {
  */
 export function cutBlockquote(document: Document): boolean {
   const quote = <Node>XPath.select(
-    "(.//*[local-name(.)='blockquote'])" +
+    "(.//blockquote)" +
     "[not(@class=\"gmail_quote\") and not(ancestor::blockquote)]" +
     "[last()]"
   , document, true);
