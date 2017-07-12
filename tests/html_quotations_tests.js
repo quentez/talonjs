@@ -138,13 +138,13 @@ describe("Html Quotations", function () {
         "<blockquote class=\"gmail_quote\">" +
         "<div class=\"gmail_default\">" +
         "My name is William Shakespeare." +
-        "<br/>" +
+        "<br>" +
         "</div>" +
         "</blockquote>";
 
       assert.equal(
         removeWhitespace("<html><body>Message<blockquoteclass=\"gmail_quote\">" +
-          "<divclass=\"gmail_default\">MynameisWilliamShakespeare.<br/></div>" +
+          "<divclass=\"gmail_default\">MynameisWilliamShakespeare.<br></div>" +
           "</blockquote></body></html>"),
         removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
@@ -197,7 +197,7 @@ describe("Html Quotations", function () {
         "</div>\n" +
         "</div>\n";
 
-      const reply = "<html><body><div>message<br/></div></body></html>";
+      const reply = "<html><body><div>message<br></div></body></html>";
 
 
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
@@ -216,7 +216,7 @@ describe("Html Quotations", function () {
         text
         </div></div>`;
 
-      const reply = "<html><body><div>message<br/></div></body></html>";
+      const reply = "<html><body><div>message<br></div></body></html>";
 
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
@@ -236,7 +236,7 @@ describe("Html Quotations", function () {
           </div>
         </body>`;
 
-      const reply = "<html><body><div>Blah<br/><br/></div></body></html>";
+      const reply = "<html><body><div>Blah<br><br></div></body></html>";
 
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
@@ -260,7 +260,7 @@ describe("Html Quotations", function () {
         if (err)
           return done(err);
 
-        const reply = "<html><body><div>Hi<div>there</div><div>Bob<hr/><br/></div></div></body></html>";
+        const reply = "<html><body><div>Hi<div>there</div><div>Bob<hr><br></div></div></body></html>";
         assert.equal(reply, removeWhitespace(quotations.extractFromHtml(html).body));
         done();
       });
@@ -413,5 +413,5 @@ describe("Html Quotations", function () {
 });
 
 function removeWhitespace(str) {
-  return str && str.replace(/\s/g, "").replace(/&nbsp;/g, "");
+  return str && str.replace(/\s/g, "").replace(/&nbsp;/g, "").replace(/\/>/g, ">");
 }
