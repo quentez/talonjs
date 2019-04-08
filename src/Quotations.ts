@@ -111,7 +111,7 @@ export function extractFromHtml(messageBody: string): {
         quotationCheckpoints[checkpoint] = true;
   // Otherwise, if we found a known quote earlier, return the content before.
   else if (cutQuotations)
-    return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy), didFindQuote: true };
+    return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
   // Finally, if no quote was found, return the original HTML.
   else
     return { body: messageBody, didFindQuote: false };
@@ -125,7 +125,7 @@ export function extractFromHtml(messageBody: string): {
 
   // Serialize and return.
   return {
-    body: xmlDomSerializer.serializeToString(xmlDocumentCopy),
+    body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true),
     didFindQuote: true
   }
 }
@@ -343,3 +343,4 @@ function loadHtmlAndFix(src: string): CheerioStatic {
 
   return document;
 }
+
