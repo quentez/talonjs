@@ -121,7 +121,7 @@ export function extractFromHtml(messageBody: string): {
 
   // Fix quirk in XmlDom.
   if (xmlDocumentCopy.nodeType === 9 && !xmlDocumentCopy.documentElement)
-    xmlDocumentCopy.documentElement = <HTMLElement>xmlDocumentCopy.childNodes[0];
+    (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
   // Serialize and return.
   return {

@@ -8,7 +8,6 @@ const XmlDom = require("xmldom");
 const talonUtils = require("../bin/Talon").utils;
 
 const xmlDomParser = new XmlDom.DOMParser();
-const xmlDomSerializer = new XmlDom.XMLSerializer();
 
 exports.parseEmlText = function (filename, done) {
   // Parse the specified file.
