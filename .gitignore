@@ -42,3 +42,4 @@ typings/
 # Vs Code
 .vscode
 .vscode/*
+.DS_Store
