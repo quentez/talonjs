@@ -329,97 +329,97 @@ describe("Html Quotations", function () {
     });
   });
 
-  // describe("Front fixtures", function () {
+  describe("Front fixtures", function () {
 
-  //   it("should correctly render Outlook comments.", function (done) {
-  //     return fs.readFile(path.join("tests", "fixtures", "front", "email_with_conditional_comments.html"), "utf-8", (err, html) => {
-  //       if (err)
-  //         return done(err);
+    it("should correctly render Outlook comments.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_conditional_comments.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
 
-  //       // Extract the quote.
-  //       var replyHtml = quotations.extractFromHtml(html).body;
+        // Extract the quote.
+        var replyHtml = quotations.extractFromHtml(html).body;
 
-  //       // Make sure it doesn't contain the incriminating string.
-  //       assert.notInclude(replyHtml, "<![if !supportLists]>", "The reply does not keep Word comments");
-  //       assert.notInclude(replyHtml, "&lt;![if !supportLists]>", "The reply does not transform Word comments");
-  //       done();
-  //     });
-  //   });
+        // Make sure it doesn't contain the incriminating string.
+        assert.notInclude(replyHtml, "<![if !supportLists]>", "The reply does not keep Word comments");
+        assert.notInclude(replyHtml, "&lt;![if !supportLists]>", "The reply does not transform Word comments");
+        done();
+      });
+    });
 
-  //   it("should correctly render emails with From: not followed by @ or Sent.", function (done) {
-  //     return fs.readFile(path.join("tests", "fixtures", "front", "email_with_from.html"), "utf-8", (err, html) => {
-  //       if (err)
-  //         return done(err);
+    it("should correctly render emails with From: not followed by @ or Sent.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_from.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
 
-  //       // Extract the quote.
-  //       var replyHtml = quotations.extractFromHtml(html).body;
+        // Extract the quote.
+        var replyHtml = quotations.extractFromHtml(html).body;
 
-  //       assert.include(replyHtml, "29 missing", "The reply does not cut From:");
-  //       done();
-  //     });
-  //   });
+        assert.include(replyHtml, "29 missing", "The reply does not cut From:");
+        done();
+      });
+    });
 
-  //   it("should correctly detect tables.", function (done) {
-  //     return fs.readFile(path.join("tests", "fixtures", "front", "email_with_table.html"), "utf-8", (err, html) => {
-  //       if (err)
-  //         return done(err);
+    it("should correctly detect tables.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_table.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
 
-  //       // Extract the quote.
-  //       var replyHtml = quotations.extractFromHtml(html).body;
+        // Extract the quote.
+        var replyHtml = quotations.extractFromHtml(html).body;
 
-  //       assert.equal(
-  //         removeWhitespace(utils.htmlToText(replyHtml)),
-  //         removeWhitespace(utils.htmlToText(html)));
-  //       done();
-  //     });
-  //   });
+        assert.equal(
+          removeWhitespace(utils.htmlToText(replyHtml)),
+          removeWhitespace(utils.htmlToText(html)));
+        done();
+      });
+    });
 
-  //   it("should not crash when no XmlDom document is found.", function (done) {
-  //     return fs.readFile(path.join("tests", "fixtures", "front", "email_with_no_doc.html"), "utf-8", (err, html) => {
-  //       if (err)
-  //         return done(err);
+    it("should not crash when no XmlDom document is found.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_no_doc.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
 
-  //       // Extract the quote.
-  //       quotations.extractFromHtml(html).body;
-  //       done();
-  //     });
-  //   });
+        // Extract the quote.
+        quotations.extractFromHtml(html).body;
+        done();
+      });
+    });
 
-    // it("should correctly reply.", function (done) {
-    //   return fs.readFile(path.join("tests", "fixtures", "front", "email_error.html"), "utf-8", (err, html) => {
-    //     if (err)
-    //       return done(err);
+    it("should correctly reply.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_error.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
 
-    //     // Extract the quote.
-    //     const replyHtml = quotations.extractFromHtml(html).body;
-    //     assert.notInclude(replyHtml, "Sadly, ");
-    //     //markers
-    //     done();
-    //   });
-    // });
+        // Extract the quote.
+        const replyHtml = quotations.extractFromHtml(html).body;
+        assert.notInclude(replyHtml, "Sadly, ");
+        //markers
+        done();
+      });
+    });
 
 
-  //   it("should test emails that used to crash extractFromHtml.", function (done) {
-  //     // List the fixtures.
-  //     const htmlRepliesPath = path.join("tests", "fixtures", "front", "crashers");
-  //     return fs.readdir(htmlRepliesPath, (err, files) => {
-  //       if (err)
-  //         return done(err);
+    it("should test emails that used to crash extractFromHtml.", function (done) {
+      // List the fixtures.
+      const htmlRepliesPath = path.join("tests", "fixtures", "front", "crashers");
+      return fs.readdir(htmlRepliesPath, (err, files) => {
+        if (err)
+          return done(err);
 
-  //       // Iterate on the files we found.
-  //       return async.eachSeries(files, (file, nextFile) => {
-  //         // Read the file.
-  //         return fs.readFile(path.join(htmlRepliesPath, file), "utf-8", (err, html) => {
-  //           if (err)
-  //             return nextFile(err);
+        // Iterate on the files we found.
+        return async.eachSeries(files, (file, nextFile) => {
+          // Read the file.
+          return fs.readFile(path.join(htmlRepliesPath, file), "utf-8", (err, html) => {
+            if (err)
+              return nextFile(err);
 
-  //           const msgBody = quotations.extractFromHtml(html);
-  //           return nextFile();
-  //         });
-  //       }, done);
-  //     });
-  //   });
-  // });
+            quotations.extractFromHtml(html);
+            return nextFile();
+          });
+        }, done);
+      });
+    });
+  });
 
 });
 

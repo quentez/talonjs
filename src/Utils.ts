@@ -52,7 +52,6 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
     commentNode.parentNode.removeChild(commentNode);
 
   let text = "";
-  let containQuotePattern = false;
   const allNodes = <Element[]>XPath.select("//*", element);
   for (const node of allNodes) {
     let nodeText = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || '')
@@ -67,7 +66,6 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
 
     nodeText = nodeValue + sibillingValue;
     nodeText = nodeText.replace('\\n', '\n');
-
     if (nodeText.length > 1) {
       if (!ignoreBlockTags && TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
         text += "\n";
