@@ -7,6 +7,7 @@ export const SplitterMaxLines = 4;
 export const MaxLinesCount = 1000;
 
 export const QuoteIds = ["OLK_SRC_BODY_SECTION"];
+export const QuotePattern = ">";
 
 export const CheckpointPrefix = "#!%!";
 export const CheckpointSuffix = "!%!#";

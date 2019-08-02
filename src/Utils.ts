@@ -40,7 +40,7 @@ export function matchStart(str: string, regexp: RegExp): RegExpMatchArray {
  * @param {Node} element - The HTML element to stringify.
  * @return {string} The string representation of the provided element.
  */
-export function elementToText(element: Node): string {
+export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   // Remove <style> elements.
   const styleNodes = <Node[]>XPath.select("//style", element);
   for (const styleNode of styleNodes)
@@ -52,37 +52,85 @@ export function elementToText(element: Node): string {
     commentNode.parentNode.removeChild(commentNode);
 
   let text = "";
-
+  let containQuotePattern = false;
   const allNodes = <Element[]>XPath.select("//*", element);
   for (const node of allNodes) {
-    const nodeText = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || "")
-      + ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || "");
+    let nodeText = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || '')
+      + ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || '');
+
+    let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || '').trim();
+    const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || '').trim();
+    // If needed, add a line break after this element.
+    if (TalonContants.Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
+      && text && text[text.length - 1] !== "\n")
+      nodeValue += "\n";
+
+    nodeText = nodeValue + sibillingValue;
+    nodeText = nodeText.replace('\\n', '\n');
 
     if (nodeText.length > 1) {
-      // Depending on the tag name, prepend content.
-      if (TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
+      if (!ignoreBlockTags && TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
         text += "\n";
+
       if (node.nodeName.toLowerCase() === "li")
         text += "  * ";
 
       // Add this element's text to the result.
-      text += nodeText.trim() + " ";
+      text += `${nodeText} `;
 
       // Add href to the output.
       const href = node.attributes.getNamedItem("href");
       if (href)
         text += `(${href}) `;
     }
-
-    // If needed, add a line break after this element.
-    if (TalonContants.Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
-        && text && text[text.length - 1] !== "\n")
-      text += "\n";
   }
-
   // Remove excessive new lines from the result and return.
   return removeExcessiveNewlines(text);
 };
+
+  // export function elementToText(element: Node): string {
+  //   // Remove <style> elements.
+  //   const styleNodes = <Node[]>XPath.select("//style", element);
+  //   for (const styleNode of styleNodes)
+  //     styleNode.parentNode.removeChild(styleNode);
+
+  //   // Remove //comments.
+  //   const commentNodes = <Node[]>XPath.select("//comment()", element);
+  //   for (const commentNode of commentNodes)
+  //     commentNode.parentNode.removeChild(commentNode);
+
+  //   let text = "";
+
+  //   const allNodes = <Element[]>XPath.select("//*", element);
+  //   for (const node of allNodes) {
+  //     const nodeText = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || "")
+  //       + ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || "");
+
+  //     if (nodeText.length > 1) {
+  //       // Depending on the tag name, prepend content.
+  //       if (TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
+  //         text += "\n";
+  //       if (node.nodeName.toLowerCase() === "li")
+  //         text += "  * ";
+
+  //       // Add this element's text to the result.
+  //       text += nodeText.trim() + " ";
+
+  //       // Add href to the output.
+  //       const href = node.attributes.getNamedItem("href");
+  //       if (href)
+  //         text += `(${href}) `;
+  //     }
+
+  //     // If needed, add a line break after this element.
+  //     if (TalonContants.Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
+  //         && text && text[text.length - 1] !== "\n")
+  //       text += "\n";
+  //   }
+
+  //   // Remove excessive new lines from the result and return.
+  //   return removeExcessiveNewlines(text);
+  // };
 
 /**
  * Ensure that an HTML document always has <html> and <body> tags.

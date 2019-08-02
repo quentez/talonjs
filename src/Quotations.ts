@@ -82,12 +82,48 @@ export function extractFromHtml(messageBody: string): {
   const numberOfCheckpoints = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
-  const messagePlainText = preprocess(elementToText(xmlDocument), "\n", TalonConstants.ContentTypeTextPlain);
+  let {quoteWasFound, error} = extractQuoteHtmlViaMarkers(quotationCheckpoints, xmlDocument, false);
+  if (error)
+    return { body: messageBody, didFindQuote: false };
+
+  // Make sure we did not miss a quote due to some parsing error
+  if (!quoteWasFound)
+    quoteWasFound= extractQuoteHtmlViaMarkers(quotationCheckpoints, xmlDocument, true).quoteWasFound;
+
+  if(quoteWasFound) {
+    // Remove the tags that we marked as quotation from the HTML.
+    HtmlQuotations.deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
+
+    // Fix quirk in XmlDom.
+    if (xmlDocumentCopy.nodeType === 9 && !xmlDocumentCopy.documentElement)
+      (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
+
+    // Serialize and return.
+    return {
+      body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true),
+      didFindQuote: true
+    }
+  }
+  // Otherwise, if we found a known quote earlier, return the content before.
+  else if (!quoteWasFound && cutQuotations)
+    return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
+  // Finally, if no quote was found, return the original HTML.
+  else
+    return { body: messageBody, didFindQuote: false };
+}
+
+
+
+function extractQuoteHtmlViaMarkers(quotationCheckpoints: Array<boolean>, xmlDocument: Document, ignoreBlockTags: Boolean): {
+  quoteWasFound?: boolean,
+  error?: string
+} {
+  const messagePlainText = preprocess(elementToText(xmlDocument, ignoreBlockTags), "\n", TalonConstants.ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
 
   // Stop here if the message is too long.
   if (lines.length > TalonConstants.MaxLinesCount)
-    return { body: messageBody, didFindQuote: false };
+    return { error: 'Message too big' };
 
   // Collect the checkpoints on each line.
   const lineCheckpoints = lines.map(line => {
@@ -99,35 +135,16 @@ export function extractFromHtml(messageBody: string): {
 
   // Remove checkpoints.
   lines = lines.map(line => line.replace(new RegExp(TalonRegexp.CheckPoint.source, "g"), ""));
-
   // Use the plain text quotation algorithm.
   const markers = markMessageLines(lines);
-  const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
 
-  // If a quote was found, mark the corresponding tags as such.
+  const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
   if (wereLinesDeleted)
     for (let index = firstDeletedLine; index <= lastDeletedLine; index++)
       for (let checkpoint of lineCheckpoints[index])
         quotationCheckpoints[checkpoint] = true;
-  // Otherwise, if we found a known quote earlier, return the content before.
-  else if (cutQuotations)
-    return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
-  // Finally, if no quote was found, return the original HTML.
-  else
-    return { body: messageBody, didFindQuote: false };
 
-  // Remove the tags that we marked as quotation from the HTML.
-  HtmlQuotations.deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
-
-  // Fix quirk in XmlDom.
-  if (xmlDocumentCopy.nodeType === 9 && !xmlDocumentCopy.documentElement)
-    (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
-
-  // Serialize and return.
-  return {
-    body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true),
-    didFindQuote: true
-  }
+  return {quoteWasFound: wereLinesDeleted}
 }
 
 /*
@@ -179,6 +196,7 @@ export function preprocess(messageBody: string, delimiter: string, contentType: 
  * e - empty line.
  * m - line that starts with quotation marker '>'
  * s - splitter line.
+ * f - forwarde line.
  * t - presumably lines from that last message in the conversation.
  *
  * @params {string[]} lines - Array of lines to mark.
@@ -191,7 +209,6 @@ export function markMessageLines(lines: string[]): string {
   let index = 0;
   while (index < lines.length) {
     const line = lines[index];
-
     // Empty line.
     if (!line) {
       markers[index] = "e";
@@ -208,7 +225,7 @@ export function markMessageLines(lines: string[]): string {
       // If none was found, assume it's a line from the last message in the conversation.
       if (!splitterMatch) {
         markers[index] = "t";
-      // Otherwise, append as many splitter markers, as lines in the splitter.
+        // Otherwise, append as many splitter markers, as lines in the splitter.
       } else {
         const splitterLines = splitLines(splitterMatch[0]);
         for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++)
@@ -218,7 +235,6 @@ export function markMessageLines(lines: string[]): string {
         index += splitterLines.length - 1;
       }
     }
-
     index++;
   }
 
@@ -245,7 +261,6 @@ export function processMarkedLines(lines: string[], markers: string): {
     firstDeletedLine: -1,
     lastDeletedLine: -1
   };
-
   // If there are no splitters, there should be no markers.
   if (markers.indexOf("s") < 0 && !/(me*){3}/.exec(markers))
     markers = markers.replace(/m/g, "t");

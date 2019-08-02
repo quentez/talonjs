@@ -20,6 +20,21 @@
 			"externalConsole": false,
 			"sourceMaps": true,
 			"outDir": "${workspaceRoot}/bin"
-		}
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Test",
+			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+			"args": [
+				"-u",
+				"tdd",
+				"--timeout",
+				"999999",
+				"--colors",
+				"${workspaceFolder}/tests/html_quotations_test"
+			],
+			"internalConsoleOptions": "openOnSessionStart"
+		},
 	]
 }
