@@ -385,14 +385,27 @@ describe("Html Quotations", function () {
       });
     });
 
-    it("should correctly reply.", function (done) {
-      return fs.readFile(path.join("tests", "fixtures", "front", "email_error.html"), "utf-8", (err, html) => {
+    it("should correctly parse quotation.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_error_quote.html"), "utf-8", (err, html) => {
         if (err)
           return done(err);
 
         // Extract the quote.
         const replyHtml = quotations.extractFromHtml(html).body;
-        assert.notInclude(replyHtml, "Sadly, ");
+        assert.notInclude(replyHtml, "Bla");
+        //markers
+        done();
+      });
+    });
+
+    it("should correctly parse email with \n.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_error_line_break.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+        // Extract the quote.
+        const replyHtml = quotations.extractFromHtml(html).body;
+        assert.notInclude(replyHtml, "Hello from quote");
         //markers
         done();
       });
