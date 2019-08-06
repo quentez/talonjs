@@ -296,7 +296,7 @@ describe("Html Quotations", function () {
 
     it("should use fixtures to test ExtractFromHtml method.", function (done) {
       // List the fixtures.
-      const htmlRepliesPath = path.join("tests", "fixtures", "nylas_bug");
+      const htmlRepliesPath = path.join("tests", "fixtures", "nylas");
       return fs.readdir(htmlRepliesPath, (err, files) => {
         if (err)
           return done(err);
