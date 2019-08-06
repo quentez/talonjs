@@ -68,7 +68,7 @@ describe("Html Quotations", function () {
         "On 11-Apr-2011, at 6:54 PM, Bob &lt;bob@example.com&gt; wrote:\n" +
         "</div>\n\n" +
         "<div>\n" +
-        "> Test\n" +
+        "Test\n" +
         "</div>\n" +
         "</body>\n" +
         "</html>\n";
