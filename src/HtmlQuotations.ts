@@ -50,7 +50,6 @@ export function addCheckpoint(document: Document, element: Node, count: number =
 
   count++;
 
-  console.log(count);
   // Return the updated count.
   return {count};
 };
