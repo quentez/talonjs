@@ -51,7 +51,8 @@ export function extractFromPlain(messageBody: string): {
  */
 export function extractFromHtml(messageBody: string): {
   body: string,
-  didFindQuote: boolean
+  didFindQuote: boolean,
+  isTooLong?: boolean
 } {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
@@ -79,12 +80,16 @@ export function extractFromHtml(messageBody: string): {
   const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
 
   // Add the checkpoints to the HTML tree.
-  const numberOfCheckpoints = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
+  const addCheckpoint = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
+  if (addCheckpoint.isTooLong)
+    return { body: messageBody, didFindQuote: false, isTooLong: true };
+
+  const numberOfCheckpoints = addCheckpoint.count;
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
   let {quoteWasFound, error} = extractQuoteHtmlViaMarkers(quotationCheckpoints, xmlDocument, false);
   if (error)
-    return { body: messageBody, didFindQuote: false };
+    return { body: messageBody, didFindQuote: false, isTooLong: true };
 
   // Make sure we did not miss a quote due to some parsing error
   if (!quoteWasFound)
@@ -138,6 +143,7 @@ function extractQuoteHtmlViaMarkers(quotationCheckpoints: Array<boolean>, xmlDoc
   const markers = markMessageLines(lines);
 
   const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
+
   if (wereLinesDeleted)
     for (let index = firstDeletedLine; index <= lastDeletedLine; index++)
       for (let checkpoint of lineCheckpoints[index])
@@ -224,7 +230,7 @@ export function markMessageLines(lines: string[]): string {
       // If none was found, assume it's a line from the last message in the conversation.
       if (!splitterMatch) {
         markers[index] = "t";
-      // Otherwise, append as many splitter markers, as lines in the splitter.
+        // Otherwise, append as many splitter markers, as lines in the splitter.
       } else {
         const splitterLines = splitLines(splitterMatch[0]);
         for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++)

@@ -5,8 +5,6 @@ import { matchStart } from "./Utils";
 import * as TalonRegexp from "./Regexp";
 import * as TalonConstants from "./Constants";
 
-const nodeLimit = 1000;
-
 /**
  * Add checkpoints to an HTML element and all its descendants.
  *
@@ -16,7 +14,7 @@ const nodeLimit = 1000;
  * @param {number} level - The recursion call depth.
  * @return {number} The total number of checkpoints in the document.
  */
-export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0): number {
+export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0): {count: number, isTooLong? :boolean} {
   // Update the text for this element.
   if (element.firstChild && element.firstChild.nodeType === 3)
     element.replaceChild(document.createTextNode(`${element.firstChild.nodeValue || ""}${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`), element.firstChild);
@@ -24,14 +22,21 @@ export function addCheckpoint(document: Document, element: Node, count: number =
     element.nodeValue = `${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`;
   count++;
 
+  if (count >= TalonConstants.NodeLimit)
+    return {count, isTooLong:true};
+
+
   // Process recursively.
-  if (count < nodeLimit)
+  if (count < TalonConstants.NodeLimit)
     for (let index = 0; index < element.childNodes.length; index++) {
       const node = element.childNodes.item(index);
-      if (node.nodeType !== 1 || count >= nodeLimit)
+      if (node.nodeType !== 1 || count >= TalonConstants.NodeLimit)
         continue;
 
-      count = addCheckpoint(document, node, count, level + 1);
+      const chekpoint = addCheckpoint(document, node, count, level + 1);
+      count = chekpoint.count;
+      if (chekpoint.isTooLong)
+        return {count, isTooLong : true}
     }
 
   // Also update the following text node, if any.
@@ -39,10 +44,15 @@ export function addCheckpoint(document: Document, element: Node, count: number =
     element.parentNode.replaceChild(document.createTextNode(`${element.nextSibling.nodeValue || ""}${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`), element.nextSibling);
   else if (element.parentNode)
     element.parentNode.appendChild(document.createTextNode(`${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`));
+
+  if (count >= TalonConstants.NodeLimit)
+    return {count, isTooLong:true};
+
   count++;
 
+  console.log(count);
   // Return the updated count.
-  return count;
+  return {count};
 };
 
 /**
@@ -78,10 +88,10 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   // Process recursively.
   const quotationChildren = new Array<Node>(); // Collection of children in quotation.
 
-  if (count < nodeLimit && !preserveTable)
+  if (count < TalonConstants.NodeLimit && !preserveTable)
     for (let index = 0; index < element.childNodes.length; index++) {
       const node = element.childNodes.item(index);
-      if (node.nodeType !== 1 || count >= nodeLimit)
+      if (node.nodeType !== 1 || count >= TalonConstants.NodeLimit)
         continue;
 
       let isChildTagInQuotation: boolean;

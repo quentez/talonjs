@@ -65,7 +65,9 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
     nodeText = nodeText.replace('\\n', '\n');
     if (nodeText.length > 1) {
       if (!ignoreBlockTags && TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
-        text += "\n";
+        if (!text || text[text.length - 1] !== "\n") {
+          text += "\n";
+        }
 
       if (node.nodeName.toLowerCase() === "li")
         text += "  * ";

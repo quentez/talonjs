@@ -98,11 +98,23 @@ export const OriginalMessage = new RegExp(
 export const FromColon = new RegExp(
   `(_+\\r?\\n)?[\\s]*(:?[*]?${
     [
-      "From", "Van", "De", "Von", "Fra", "Från"      // "From" in different languages.
+      "From",
+      "Van",
+      "De",
+      "Von",
+      "Fra",
+      "Från",
+      "De"     // "From" in different languages.
     ].join("|")
   })[\\s]?:[\\S\\s]*(@|${
     [
-      "Sent", "Verzonden", "Envoyé", "Gesendet", "Sendt", "Skickat" , "Enviada em"    // "Sent" in different languages.
+      "Sent",
+      "Verzonden",
+      "Envoyé",
+      "Gesendet",
+      "Sendt",
+      "Skickat" ,
+      "Enviada em"    // "Sent" in different languages.
     ].join("|")
   })`, "i"
 );
