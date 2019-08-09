@@ -103,8 +103,7 @@ export const FromColon = new RegExp(
       "De",
       "Von",
       "Fra",
-      "Från",
-      "De"     // "From" in different languages.
+      "Från"     // "From" in different languages.
     ].join("|")
   })[\\s]?:[\\S\\s]*(@|${
     [

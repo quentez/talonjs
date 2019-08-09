@@ -217,6 +217,7 @@ export function markMessageLines(lines: string[]): string {
     // Empty line.
     if (!line) {
       markers[index] = "e";
+
     // Line with a quotation marker.
     } else if (matchStart(line, TalonRegexp.QuotePattern)) {
       markers[index] = "m";

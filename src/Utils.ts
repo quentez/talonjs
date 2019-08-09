@@ -56,7 +56,6 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   for (const node of allNodes) {
     let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || '').trim();
     const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || '').trim();
-    // If needed, add a line break after this element.
     if (TalonContants.Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
       && text && text[text.length - 1] !== "\n")
       nodeValue += "\n";
@@ -65,9 +64,7 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
     nodeText = nodeText.replace('\\n', '\n');
     if (nodeText.length > 1) {
       if (!ignoreBlockTags && TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
-        if (!text || text[text.length - 1] !== "\n") {
-          text += "\n";
-        }
+        text += "\n";
 
       if (node.nodeName.toLowerCase() === "li")
         text += "  * ";

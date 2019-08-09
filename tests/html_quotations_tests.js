@@ -411,19 +411,6 @@ describe("Html Quotations", function () {
       });
     });
 
-    it("should correctly fail on email with more than 1000 nodes", function (done) {
-      return fs.readFile(path.join("tests", "fixtures", "front", "email_test.html"), "utf-8", (err, html) => {
-        if (err)
-          return done(err);
-
-        // Extract the quote.
-        const reply = quotations.extractFromHtml(html);
-        assert.equal(reply.isTooLong, true)
-        //markers
-        done();
-      });
-    });
-
     it("should test emails that used to crash extractFromHtml.", function (done) {
       // List the fixtures.
       const htmlRepliesPath = path.join("tests", "fixtures", "front", "crashers");
