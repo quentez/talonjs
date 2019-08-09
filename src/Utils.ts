@@ -1,5 +1,5 @@
 import * as XPath from "xpath";
-import * as TalonContants from "./Constants";
+import { BlockTags, Hardbreaks } from "./Constants";
 import * as TalonRegexp from "./Regexp";
 
 /**
@@ -60,7 +60,7 @@ export function elementToText(element: Node): string {
 
     if (nodeText.length > 1) {
       // Depending on the tag name, prepend content.
-      if (TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
+      if (BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
         text += "\n";
       if (node.nodeName.toLowerCase() === "li")
         text += "  * ";
@@ -75,7 +75,7 @@ export function elementToText(element: Node): string {
     }
 
     // If needed, add a line break after this element.
-    if (TalonContants.Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
+    if (Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
         && text && text[text.length - 1] !== "\n")
       text += "\n";
   }
