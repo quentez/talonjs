@@ -51,7 +51,8 @@ export function extractFromPlain(messageBody: string): {
  */
 export function extractFromHtml(messageBody: string): {
   body: string,
-  didFindQuote: boolean
+  didFindQuote: boolean,
+  isTooLong?: boolean
 } {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
@@ -79,7 +80,11 @@ export function extractFromHtml(messageBody: string): {
   const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
 
   // Add the checkpoints to the HTML tree.
-  const numberOfCheckpoints = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
+  const addCheckpoint = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
+  if (addCheckpoint.isTooLong)
+    return { body: messageBody, didFindQuote: false, isTooLong: true };
+
+  const numberOfCheckpoints = addCheckpoint.count;
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
   const messagePlainText = preprocess(elementToText(xmlDocument), "\n", TalonConstants.ContentTypeTextPlain);
@@ -87,7 +92,7 @@ export function extractFromHtml(messageBody: string): {
 
   // Stop here if the message is too long.
   if (lines.length > TalonConstants.MaxLinesCount)
-    return { body: messageBody, didFindQuote: false };
+    return { body: messageBody, didFindQuote: false, isTooLong: true };
 
   // Collect the checkpoints on each line.
   const lineCheckpoints = lines.map(line => {

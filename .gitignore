@@ -38,3 +38,8 @@ bin/
 
 # Typescript definitions.
 typings/
+
+ # Vs Code
+.vscode
+.vscode/*
+.DS_Store
