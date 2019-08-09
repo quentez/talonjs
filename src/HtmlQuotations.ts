@@ -14,7 +14,7 @@ import { CheckpointPrefix, CheckpointSuffix, NodeLimit, QuoteIds } from "./Const
  * @param {number} level - The recursion call depth.
  * @return {number} The total number of checkpoints in the document.
  */
-export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0) {
+export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0): number {
   // Update the text for this element.
   if (element.firstChild && element.firstChild.nodeType === 3)
     element.replaceChild(document.createTextNode(`${element.firstChild.nodeValue || ""}${CheckpointPrefix}${count}${CheckpointSuffix}`), element.firstChild);
