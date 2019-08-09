@@ -53,6 +53,7 @@ export function elementToText(element: Node): string {
 
   let text = "";
 
+
   const allNodes = <Element[]>XPath.select("//*", element);
   for (const node of allNodes) {
     const nodeText = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || "")
