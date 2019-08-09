@@ -1,6 +1,7 @@
-import * as XPath from "xpath";
-import { BlockTags, Hardbreaks } from "./Constants";
-import * as TalonRegexp from "./Regexp";
+import * as XPath from 'xpath';
+
+import { BlockTags, Hardbreaks } from './Constants';
+import { DelimiterRegexp } from './Regexp';
 
 /**
  * Find the line delimiter in the specified message body.
@@ -8,7 +9,7 @@ import * as TalonRegexp from "./Regexp";
  * @return {string} The delimiter found in the body.
  */
 export function findDelimiter(messageBody: string): string {
-  var match = TalonRegexp.Delimiter.exec(messageBody);
+  var match = DelimiterRegexp.exec(messageBody);
   return match ? match[0] : "\n";
 };
 

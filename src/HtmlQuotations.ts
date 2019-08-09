@@ -1,9 +1,8 @@
-import * as XmlDom from "xmldom";
-import * as XPath from "xpath";
+import * as XPath from 'xpath';
 
-import { matchStart } from "./Utils";
-import * as TalonRegexp from "./Regexp";
-import { CheckpointPrefix, CheckpointSuffix, NodeLimit, QuoteIds } from "./Constants";
+import { CheckpointPrefix, CheckpointSuffix, NodeLimit, QuoteIds } from './Constants';
+import { ForwardRegexp } from './Regexp';
+import { matchStart } from './Utils';
 
 /**
  * Add checkpoints to an HTML element and all its descendants.
@@ -125,7 +124,7 @@ export function cutGmailQuote(document: Document): boolean {
   const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
 
   // If no quote was found, or if that quote was a forward, return false.
-  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, TalonRegexp.Forward)))
+  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)))
     return false;
 
   // Otherwise, remove the quote from the document and return.

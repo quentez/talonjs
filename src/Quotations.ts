@@ -1,13 +1,32 @@
-import * as Cheerio from "cheerio";
-import * as XmlDom from "xmldom";
+import * as Cheerio from 'cheerio';
+import * as XmlDom from 'xmldom';
+
+import { ContentType, ContentTypeTextPlain, MaxLinesCount, NodeLimit, SplitterMaxLines } from './Constants';
+import {
+  addCheckpoint,
+  cutBlockquote,
+  cutById,
+  cutGmailQuote,
+  cutMicrosoftQuote,
+  cutZimbraQuote,
+  deleteQuotationTags,
+} from './HtmlQuotations';
+import {
+  CheckPointRegexp,
+  EmptyQuotationRegexp,
+  ForwardRegexp,
+  LinkRegexp,
+  NormalizedLinkRegexp,
+  OnDateSomebodyWroteRegexp,
+  ParenthesisLinkRegexp,
+  QuotationRegexp,
+  QuotePatternRegexp,
+  SplitterRegexps,
+} from './Regexp';
+import { elementToText, findDelimiter, matchStart, normalizeHtmlDocument, splitLines } from './Utils';
 
 const xmlDomParser = new XmlDom.DOMParser({ errorHandler: { warning: () => {}, error: () => {}, fatalError: (error) => { throw error; } }});
 const xmlDomSerializer = new XmlDom.XMLSerializer();
-
-import { findDelimiter, splitLines, matchStart, elementToText, normalizeHtmlDocument } from "./Utils";
-import * as TalonRegexp from "./Regexp";
-import { MaxLinesCount, NodeLimit, ContentTypeTextPlain, ContentType, SplitterMaxLines } from "./Constants";
-import * as HtmlQuotations from "./HtmlQuotations";
 
 /*
  * Module interface.
@@ -72,17 +91,17 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     xmlDocument.removeChild(xmlDocument.lastChild);
 
   // Try and cut the quote of one of the known types.
-  const cutQuotations = HtmlQuotations.cutGmailQuote(xmlDocument)
-     || HtmlQuotations.cutZimbraQuote(xmlDocument)
-     || HtmlQuotations.cutBlockquote(xmlDocument)
-     || HtmlQuotations.cutMicrosoftQuote(xmlDocument)
-     || HtmlQuotations.cutById(xmlDocument);
+  const cutQuotations = cutGmailQuote(xmlDocument)
+     || cutZimbraQuote(xmlDocument)
+     || cutBlockquote(xmlDocument)
+     || cutMicrosoftQuote(xmlDocument)
+     || cutById(xmlDocument);
 
   // Keep a copy of the original document around.
   const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
 
   // Add the checkpoints to the HTML tree.
-  const numberOfCheckpoints = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
+  const numberOfCheckpoints = addCheckpoint(xmlDocument, xmlDocument);
   if (numberOfCheckpoints >= NodeLimit)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
@@ -96,14 +115,14 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
 
   // Collect the checkpoints on each line.
   const lineCheckpoints = lines.map(line => {
-    const match = line.match(new RegExp(TalonRegexp.CheckPoint.source, "g"));
+    const match = line.match(new RegExp(CheckPointRegexp.source, "g"));
     return match
       ? match.map(matchPart => parseInt(matchPart.slice(4, -4), 10))
       : new Array<number>();
   });
 
   // Remove checkpoints.
-  lines = lines.map(line => line.replace(new RegExp(TalonRegexp.CheckPoint.source, "g"), ""));
+  lines = lines.map(line => line.replace(new RegExp(CheckPointRegexp.source, "g"), ""));
 
   // Use the plain text quotation algorithm.
   const markers = markMessageLines(lines);
@@ -122,7 +141,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     return { body: messageBody, didFindQuote: false };
 
   // Remove the tags that we marked as quotation from the HTML.
-  HtmlQuotations.deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
+  deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
 
   // Fix quirk in XmlDom.
   if (xmlDocumentCopy.nodeType === 9 && !xmlDocumentCopy.documentElement)
@@ -154,7 +173,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
 export function preprocess(messageBody: string, delimiter: string, contentType: ContentType = ContentTypeTextPlain): string {
   // Normalize links. i.e. replace "<", ">" wrapping the link with some symbols
   // so that ">" closing the link won't be mistaken for a quotation marker.
-  messageBody = messageBody.replace(new RegExp(TalonRegexp.Link.source, "g"), (match: string, link: string, offset: number, str: string): string => {
+  messageBody = messageBody.replace(new RegExp(LinkRegexp.source, "g"), (match: string, link: string, offset: number, str: string): string => {
     const newLineIndex = str.substring(offset).indexOf("\n");
     return str[newLineIndex + 1] === ">" ? match : `@@${link}@@`;
   });
@@ -164,7 +183,7 @@ export function preprocess(messageBody: string, delimiter: string, contentType: 
     return messageBody;
 
   // Otherwise, wrap splitters with new lines.
-  messageBody = messageBody.replace(new RegExp(TalonRegexp.OnDateSomebodyWrote.source, "g"), (match: string, ...args: any[]) => {
+  messageBody = messageBody.replace(new RegExp(OnDateSomebodyWroteRegexp.source, "g"), (match: string, ...args: any[]) => {
     const offset = args.filter(a => isFinite(a))[0];
     const str = args[args.length - 1];
 
@@ -201,10 +220,10 @@ export function markMessageLines(lines: string[]): string {
     if (!line) {
       markers[index] = "e";
     // Line with a quotation marker.
-    } else if (matchStart(line, TalonRegexp.QuotePattern)) {
+    } else if (matchStart(line, QuotePatternRegexp)) {
       markers[index] = "m";
     // Forwarded message.
-    } else if (matchStart(line, TalonRegexp.Forward)) {
+    } else if (matchStart(line, ForwardRegexp)) {
       markers[index] = "f";
     } else {
       // Try to find a splitter spread on several lines.
@@ -266,8 +285,8 @@ export function processMarkedLines(lines: string[], markers: string): {
   while (inlineReplyMatch = inlineReplyRegexp.exec(markers)) {
     // Long links could break a sequence of quotation lines,
     // but they shouldn't be considered an inline reply.
-    const links = lines[inlineReplyMatch.index].match(TalonRegexp.ParenthesisLink)
-      || matchStart(lines[inlineReplyMatch.index + 1].trim(), TalonRegexp.ParenthesisLink)
+    const links = lines[inlineReplyMatch.index].match(ParenthesisLinkRegexp)
+      || matchStart(lines[inlineReplyMatch.index + 1].trim(), ParenthesisLinkRegexp)
 
     if (!links)
       return result;
@@ -287,8 +306,8 @@ export function processMarkedLines(lines: string[], markers: string): {
   }
 
   // Handle the case with markers.
-  quotation = markers.match(TalonRegexp.Quotation)
-    || markers.match(TalonRegexp.EmptyQuotation);
+  quotation = markers.match(QuotationRegexp)
+    || markers.match(EmptyQuotationRegexp);
 
   if (quotation) {
     const firstGroupStart = quotation.index + quotation[0].indexOf(quotation[1]);
@@ -316,7 +335,7 @@ export function processMarkedLines(lines: string[], markers: string): {
  * @return {string} The processed message body.
  */
 function postProcess(messageBody: string): string {
-  return messageBody.replace(new RegExp(TalonRegexp.NormalizedLink.source, "g"), "<$1>").trim();
+  return messageBody.replace(new RegExp(NormalizedLinkRegexp.source, "g"), "<$1>").trim();
 }
 
 /**
@@ -326,7 +345,7 @@ function postProcess(messageBody: string): string {
  * @return {RegExpMatchArray} The match for the splitter that was found, if any.
  */
 function isSplitter(src: string): RegExpMatchArray {
-  for (const pattern of TalonRegexp.SplitterPatterns) {
+  for (const pattern of SplitterRegexps) {
     var match = matchStart(src, pattern);
     if (match)
       return match;

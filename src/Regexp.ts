@@ -1,12 +1,12 @@
-import { CheckpointPrefix, CheckpointSuffix } from "./Constants";
+import { CheckpointPrefix, CheckpointSuffix } from './Constants';
 
-export const CheckPoint = new RegExp(`${CheckpointPrefix}\\d+${CheckpointSuffix}`, "im");
+export const CheckPointRegexp = new RegExp(`${CheckpointPrefix}\\d+${CheckpointSuffix}`, "im");
 
-export const Delimiter = new RegExp("\\r?\\n");
+export const DelimiterRegexp = new RegExp("\\r?\\n");
 
-export const Forward = new RegExp("^[-]+[ ]*Forwarded message[ ]*[-]+$", "im");
+export const ForwardRegexp = new RegExp("^[-]+[ ]*Forwarded message[ ]*[-]+$", "im");
 
-export const OnDateSomebodyWrote = new RegExp(
+export const OnDateSomebodyWroteRegexp = new RegExp(
   `-{0,100}[>]?[ ]?(${
     // Beginning of the line.
     [
@@ -37,7 +37,7 @@ export const OnDateSomebodyWrote = new RegExp(
   }):?-{0,100}`
 );
 
-export const OnDateWroteSomebody = new RegExp(
+export const OnDateWroteSomebodyRegexp = new RegExp(
   `-{0,100}[>]?[ ]?(${
     // Beginning of the line.
     [
@@ -53,7 +53,7 @@ export const OnDateWroteSomebody = new RegExp(
   }).{0,100}:`
 );
 
-export const Quotation = new RegExp(
+export const QuotationRegexp = new RegExp(
   "(" +
     // Quotation border: splitter line or a number of quotation marker lines.
     "(?:" +
@@ -71,7 +71,7 @@ export const Quotation = new RegExp(
   "[te]*$"
 );
 
-export const EmptyQuotation = new RegExp(
+export const EmptyQuotationRegexp = new RegExp(
   "(" +
     // Quotation border: splitter line or a number of quotation marker lines.
     "(?:" +
@@ -85,7 +85,7 @@ export const EmptyQuotation = new RegExp(
 
 // ------Original Message------ or ---- Reply Message ----
 // With variations in other languages.
-export const OriginalMessage = new RegExp(
+export const OriginalMessageRegexp = new RegExp(
   `[\\s]*[-]+[ ]{0,100}(${
     [
       "Original Message", "Reply Message",            // English
@@ -95,7 +95,7 @@ export const OriginalMessage = new RegExp(
   })[ ]{0,100}[-]+`, "i"
 );
 
-export const FromColon = new RegExp(
+export const FromColonRegexp = new RegExp(
   `(_+\\r?\\n)?[\\s]*(:?[*]?${
     [
       "From", "Van", "De", "Von", "Fra", "Från"      // "From" in different languages.
@@ -107,7 +107,7 @@ export const FromColon = new RegExp(
   })`, "i"
 );
 
-export const DateColon = new RegExp(
+export const DateColonRegexp = new RegExp(
   `(_+\\r?\\n)?[\\s]*(:?[*]?${
     [
       "Date", "Datum", "Envoyé", "Skickat", "Sendt"  // "Date" in different languages.
@@ -115,12 +115,12 @@ export const DateColon = new RegExp(
   })[\\s]?:[*]? .*`, "i"
 );
 
-export const SplitterPatterns = [
-  OriginalMessage,
-  OnDateSomebodyWrote,
-  OnDateWroteSomebody,
-  FromColon,
-  DateColon,
+export const SplitterRegexps = [
+  OriginalMessageRegexp,
+  OnDateSomebodyWroteRegexp,
+  OnDateWroteSomebodyRegexp,
+  FromColonRegexp,
+  DateColonRegexp,
   // 02.04.2012 14:20 пользователь "bob@example.com" <
   // bob@xxx.mailgun.org> написал:
   new RegExp("(\\d+\\/\\d+\\/\\d+|\\d+\\.\\d+\\.\\d+)[^]*@"),
@@ -133,9 +133,9 @@ export const SplitterPatterns = [
   new RegExp("Sent from Samsung .{0,100}@.{0,100}> wrote")
 ];
 
-export const Link = new RegExp("<(http://[^>]*)>");
-export const NormalizedLink = new RegExp("@@(http://[^>@]*)@@");
-export const ParenthesisLink = new RegExp("\\(https?://");
+export const LinkRegexp = new RegExp("<(http://[^>]*)>");
+export const NormalizedLinkRegexp = new RegExp("@@(http://[^>@]*)@@");
+export const ParenthesisLinkRegexp = new RegExp("\\(https?://");
 
-export const QuotePattern = new RegExp("^>+ ?");
-export const NoQuoteLine = new RegExp("^[^>].*[\\S].*");
+export const QuotePatternRegexp = new RegExp("^>+ ?");
+export const NoQuoteLineRegexp = new RegExp("^[^>].*[\\S].*");
