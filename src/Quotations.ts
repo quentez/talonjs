@@ -6,12 +6,17 @@ const xmlDomSerializer = new XmlDom.XMLSerializer();
 
 import { findDelimiter, splitLines, matchStart, elementToText, normalizeHtmlDocument } from "./Utils";
 import * as TalonRegexp from "./Regexp";
-import * as TalonConstants from "./Constants";
+import { MaxLinesCount, NodeLimit, ContentTypeTextPlain, ContentType, SplitterMaxLines } from "./Constants";
 import * as HtmlQuotations from "./HtmlQuotations";
 
 /*
  * Module interface.
  */
+
+interface ExtractFromPlainResult {
+  body: string,
+  didFindQuote: boolean
+}
 
 /**
  * Extracts a non quoted message from the provided plain text.
@@ -19,10 +24,7 @@ import * as HtmlQuotations from "./HtmlQuotations";
  * @param {string} messageBody - The plain text body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromPlain(messageBody: string): {
-  body: string,
-  didFindQuote: boolean
-} {
+export function extractFromPlain(messageBody: string): ExtractFromPlainResult {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
 
@@ -31,7 +33,7 @@ export function extractFromPlain(messageBody: string): {
   messageBody = preprocess(messageBody, delimiter);
 
   // Only take the X first lines.
-  const lines = splitLines(messageBody).slice(0, TalonConstants.MaxLinesCount);
+  const lines = splitLines(messageBody).slice(0, MaxLinesCount);
   const markers = markMessageLines(lines);
   const { wereLinesDeleted, lastMessageLines } = processMarkedLines(lines, markers);
 
@@ -43,17 +45,17 @@ export function extractFromPlain(messageBody: string): {
   return { body: messageBody, didFindQuote: wereLinesDeleted };
 }
 
+interface ExtractFromHtmlResult extends ExtractFromPlainResult {
+  isTooLong?: boolean
+}
+
 /**
  * Extracts a non quoted message from the provided html.
  *
  * @param {string} messageBody - The html body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromHtml(messageBody: string): {
-  body: string,
-  didFindQuote: boolean,
-  isTooLong?: boolean
-} {
+export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
 
@@ -80,18 +82,16 @@ export function extractFromHtml(messageBody: string): {
   const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
 
   // Add the checkpoints to the HTML tree.
-  const addCheckpoint = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
-  if (addCheckpoint.isTooLong)
+  const numberOfCheckpoints = HtmlQuotations.addCheckpoint(xmlDocument, xmlDocument);
+  if (numberOfCheckpoints >= NodeLimit)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
-  const numberOfCheckpoints = addCheckpoint.count;
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
-
-  const messagePlainText = preprocess(elementToText(xmlDocument), "\n", TalonConstants.ContentTypeTextPlain);
+  const messagePlainText = preprocess(elementToText(xmlDocument), "\n", ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
 
   // Stop here if the message is too long.
-  if (lines.length > TalonConstants.MaxLinesCount)
+  if (lines.length > MaxLinesCount)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
   // Collect the checkpoints on each line.
@@ -151,7 +151,7 @@ export function extractFromHtml(messageBody: string): {
  * @param {string} contentType - The MIME content type of the provided body.
  * @return {string} The pre-processed message body.
  */
-export function preprocess(messageBody: string, delimiter: string, contentType: TalonConstants.ContentType = TalonConstants.ContentTypeTextPlain): string {
+export function preprocess(messageBody: string, delimiter: string, contentType: ContentType = ContentTypeTextPlain): string {
   // Normalize links. i.e. replace "<", ">" wrapping the link with some symbols
   // so that ">" closing the link won't be mistaken for a quotation marker.
   messageBody = messageBody.replace(new RegExp(TalonRegexp.Link.source, "g"), (match: string, link: string, offset: number, str: string): string => {
@@ -160,7 +160,7 @@ export function preprocess(messageBody: string, delimiter: string, contentType: 
   });
 
   // If this is an HTML message, we're done here.
-  if (contentType !== TalonConstants.ContentTypeTextPlain)
+  if (contentType !== ContentTypeTextPlain)
     return messageBody;
 
   // Otherwise, wrap splitters with new lines.
@@ -208,7 +208,7 @@ export function markMessageLines(lines: string[]): string {
       markers[index] = "f";
     } else {
       // Try to find a splitter spread on several lines.
-      const splitterMatch = isSplitter(lines.slice(index, index + TalonConstants.SplitterMaxLines).join("\n"));
+      const splitterMatch = isSplitter(lines.slice(index, index + SplitterMaxLines).join("\n"));
 
       // If none was found, assume it's a line from the last message in the conversation.
       if (!splitterMatch) {
