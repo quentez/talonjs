@@ -105,17 +105,17 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
   if (numberOfCheckpoints >= NodeLimit)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
-  let quoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, false);
-  if (quoteHtml.error)
+  let extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, false);
+  if (extractQuoteHtml.error)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
   // Make sure we did not miss a quote due to some parsing error
-  if (!quoteHtml.quoteWasFound)
-    quoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, true);
+  if (!extractQuoteHtml.quoteWasFound)
+    extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, true);
 
-  if(quoteHtml.quoteWasFound) {
+  if(extractQuoteHtml.quoteWasFound) {
     // Remove the tags that we marked as quotation from the HTML.
-    deleteQuotationTags(xmlDocument, xmlDocumentCopy, quoteHtml.quotationCheckpoints);
+    deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints);
 
     // Fix quirk in XmlDom.
     if (xmlDocumentCopy.nodeType === 9 && !xmlDocumentCopy.documentElement)
@@ -128,7 +128,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     }
   }
   // Otherwise, if we found a known quote earlier, return the content before.
-  else if (!quoteHtml.quoteWasFound && cutQuotations)
+  else if (!extractQuoteHtml.quoteWasFound && cutQuotations)
     return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
   // Finally, if no quote was found, return the original HTML.
   else
