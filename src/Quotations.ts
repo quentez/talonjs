@@ -105,19 +105,17 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
   if (numberOfCheckpoints >= NodeLimit)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
-  const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
-
-  let {quoteWasFound, error} = extractQuoteHtmlViaMarkers(quotationCheckpoints, xmlDocument, false);
-  if (error)
+  let quoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, false);
+  if (quoteHtml.error)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
   // Make sure we did not miss a quote due to some parsing error
-  if (!quoteWasFound)
-    quoteWasFound= extractQuoteHtmlViaMarkers(quotationCheckpoints, xmlDocument, true).quoteWasFound;
+  if (!quoteHtml.quoteWasFound)
+    quoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, true);
 
-  if(quoteWasFound) {
+  if(quoteHtml.quoteWasFound) {
     // Remove the tags that we marked as quotation from the HTML.
-    deleteQuotationTags(xmlDocument, xmlDocumentCopy, quotationCheckpoints);
+    deleteQuotationTags(xmlDocument, xmlDocumentCopy, quoteHtml.quotationCheckpoints);
 
     // Fix quirk in XmlDom.
     if (xmlDocumentCopy.nodeType === 9 && !xmlDocumentCopy.documentElement)
@@ -130,7 +128,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     }
   }
   // Otherwise, if we found a known quote earlier, return the content before.
-  else if (!quoteWasFound && cutQuotations)
+  else if (!quoteHtml.quoteWasFound && cutQuotations)
     return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
   // Finally, if no quote was found, return the original HTML.
   else
@@ -138,7 +136,8 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
 }
 
 
-function extractQuoteHtmlViaMarkers(quotationCheckpoints: Array<boolean>, xmlDocument: Document, ignoreBlockTags: Boolean): {
+function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, ignoreBlockTags: Boolean): {
+  quotationCheckpoints?: Array<boolean>,
   quoteWasFound?: boolean,
   error?: string
 } {
@@ -163,13 +162,14 @@ function extractQuoteHtmlViaMarkers(quotationCheckpoints: Array<boolean>, xmlDoc
   const markers = markMessageLines(lines);
 
   const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
+  const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
   if (wereLinesDeleted)
     for (let index = firstDeletedLine; index <= lastDeletedLine; index++)
       for (let checkpoint of lineCheckpoints[index])
         quotationCheckpoints[checkpoint] = true;
 
-  return {quoteWasFound: wereLinesDeleted}
+  return {quoteWasFound: wereLinesDeleted, quotationCheckpoints: quotationCheckpoints}
 }
 
 /*
