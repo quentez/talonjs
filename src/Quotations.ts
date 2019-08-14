@@ -384,4 +384,3 @@ function loadHtmlAndFix(src: string): CheerioStatic {
 
   return document;
 }
-
