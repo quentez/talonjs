@@ -275,7 +275,7 @@ describe("Html Quotations", function () {
 
           // Read the file.
           return fs.readFile(path.join(htmlRepliesPath, file), "utf-8", (err, html) => {
-          if (err)
+            if (err)
               return nextFile(err);
 
             const replyHtml = quotations.extractFromHtml(html).body;
@@ -393,8 +393,7 @@ describe("Html Quotations", function () {
         // Extract the quote.
         const replyHtml = quotations.extractFromHtml(html).body;
         assert.notInclude(replyHtml, "Bla");
-        //markers
-        done();
+        return done();
       });
     });
 
@@ -406,8 +405,7 @@ describe("Html Quotations", function () {
         // Extract the quote.
         const replyHtml = quotations.extractFromHtml(html).body;
         assert.notInclude(replyHtml, "Hello from quote");
-        //markers
-        done();
+        return done();
       });
     });
 

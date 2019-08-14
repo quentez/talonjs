@@ -39,14 +39,7 @@ bin/
 # Typescript definitions.
 typings/
 
-<<<<<<< HEAD
-# Vs Code
-.vscode
-.vscode/*
-.DS_Store
-=======
 # Vs Code.
 .vscode
 .vscode/*
 .DS_Store
->>>>>>> master
