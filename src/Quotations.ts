@@ -1,7 +1,7 @@
 import * as Cheerio from 'cheerio';
 import * as XmlDom from 'xmldom';
 
-import { ContentType, ContentTypeTextPlain, MaxLinesCount, NodeLimit, SplitterMaxLines } from './Constants';
+import { ContentType, ContentTypeTextPlain, MaxLinesCount, NodeLimit, SplitterMaxLines, NodeType } from './Constants';
 import {
   addCheckpoint,
   cutBlockquote,
@@ -118,7 +118,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints);
 
     // Fix quirk in XmlDom.
-    if (xmlDocumentCopy.nodeType === 9 && !xmlDocumentCopy.documentElement)
+    if (xmlDocumentCopy.nodeType === NodeType.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)
       (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
     // Serialize and return.

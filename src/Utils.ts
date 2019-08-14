@@ -1,6 +1,6 @@
 import * as XPath from 'xpath';
 
-import { BlockTags, Hardbreaks } from './Constants';
+import { BlockTags, Hardbreaks, NodeType } from './Constants';
 import { DelimiterRegexp } from './Regexp';
 
 /**
@@ -55,8 +55,8 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   let text = "";
   const allNodes = <Element[]>XPath.select("//*", element);
   for (const node of allNodes) {
-    let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || '').trim();
-    const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || '').trim();
+    let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === NodeType.TEXT_NODE && node.firstChild.nodeValue) || '').trim();
+    const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === NodeType.TEXT_NODE && node.nextSibling.nodeValue) || '').trim();
 
     if (Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
       && text && text[text.length - 1] !== "\n")
