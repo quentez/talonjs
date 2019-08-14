@@ -1,6 +1,7 @@
-import * as XPath from "xpath";
-import * as TalonContants from "./Constants";
-import * as TalonRegexp from "./Regexp";
+import * as XPath from 'xpath';
+
+import { BlockTags, Hardbreaks } from './Constants';
+import { DelimiterRegexp } from './Regexp';
 
 /**
  * Find the line delimiter in the specified message body.
@@ -8,7 +9,7 @@ import * as TalonRegexp from "./Regexp";
  * @return {string} The delimiter found in the body.
  */
 export function findDelimiter(messageBody: string): string {
-  var match = TalonRegexp.Delimiter.exec(messageBody);
+  var match = DelimiterRegexp.exec(messageBody);
   return match ? match[0] : "\n";
 };
 
@@ -56,14 +57,15 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   for (const node of allNodes) {
     let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || '').trim();
     const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || '').trim();
-    if (TalonContants.Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
+
+    if (Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
       && text && text[text.length - 1] !== "\n")
       nodeValue += "\n";
 
     let nodeText = nodeValue + sibillingValue;
     nodeText = nodeText.replace('\\n', '\n');
     if (nodeText.length > 1) {
-      if (!ignoreBlockTags && TalonContants.BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
+      if (!ignoreBlockTags && BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
         text += "\n";
 
       if (node.nodeName.toLowerCase() === "li")

@@ -1,9 +1,8 @@
-import * as XmlDom from "xmldom";
-import * as XPath from "xpath";
+import * as XPath from 'xpath';
 
-import { matchStart } from "./Utils";
-import * as TalonRegexp from "./Regexp";
-import * as TalonConstants from "./Constants";
+import { CheckpointPrefix, CheckpointSuffix, NodeLimit, QuoteIds } from './Constants';
+import { ForwardRegexp } from './Regexp';
+import { matchStart } from './Utils';
 
 /**
  * Add checkpoints to an HTML element and all its descendants.
@@ -14,44 +13,34 @@ import * as TalonConstants from "./Constants";
  * @param {number} level - The recursion call depth.
  * @return {number} The total number of checkpoints in the document.
  */
-export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0): {count: number, isTooLong? :boolean} {
+export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0): number {
   // Update the text for this element.
   if (element.firstChild && element.firstChild.nodeType === 3)
-    element.replaceChild(document.createTextNode(`${element.firstChild.nodeValue || ""}${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`), element.firstChild);
+    element.replaceChild(document.createTextNode(`${element.firstChild.nodeValue || ""}${CheckpointPrefix}${count}${CheckpointSuffix}`), element.firstChild);
   else
-    element.nodeValue = `${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`;
+    element.nodeValue = `${CheckpointPrefix}${count}${CheckpointSuffix}`;
   count++;
 
-  if (count >= TalonConstants.NodeLimit)
-    return {count, isTooLong:true};
-
-
   // Process recursively.
-  if (count < TalonConstants.NodeLimit)
-    for (let index = 0; index < element.childNodes.length; index++) {
+  if (count < NodeLimit)
+    for (let index = 0; index < element.childNodes.length && count < NodeLimit; index++) {
       const node = element.childNodes.item(index);
-      if (node.nodeType !== 1 || count >= TalonConstants.NodeLimit)
+      if (node.nodeType !== 1)
         continue;
 
-      const chekpoint = addCheckpoint(document, node, count, level + 1);
-      count = chekpoint.count;
-      if (chekpoint.isTooLong)
-        return {count, isTooLong : true}
+      count = addCheckpoint(document, node, count, level + 1);
     }
 
   // Also update the following text node, if any.
   if (element.nextSibling && element.nextSibling.nodeType === 3)
-    element.parentNode.replaceChild(document.createTextNode(`${element.nextSibling.nodeValue || ""}${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`), element.nextSibling);
+    element.parentNode.replaceChild(document.createTextNode(`${element.nextSibling.nodeValue || ""}${CheckpointPrefix}${count}${CheckpointSuffix}`), element.nextSibling);
   else if (element.parentNode)
-    element.parentNode.appendChild(document.createTextNode(`${TalonConstants.CheckpointPrefix}${count}${TalonConstants.CheckpointSuffix}`));
-
-  if (count >= TalonConstants.NodeLimit)
-    return {count, isTooLong:true};
+    element.parentNode.appendChild(document.createTextNode(`${CheckpointPrefix}${count}${CheckpointSuffix}`));
 
   count++;
 
   // Return the updated count.
-  return {count};
+  return count;
 };
 
 /**
@@ -87,10 +76,10 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   // Process recursively.
   const quotationChildren = new Array<Node>(); // Collection of children in quotation.
 
-  if (count < TalonConstants.NodeLimit && !preserveTable)
-    for (let index = 0; index < element.childNodes.length; index++) {
+  if (count < NodeLimit && !preserveTable)
+    for (let index = 0; index < element.childNodes.length && count < NodeLimit; index++) {
       const node = element.childNodes.item(index);
-      if (node.nodeType !== 1 || count >= TalonConstants.NodeLimit)
+      if (node.nodeType !== 1)
         continue;
 
       let isChildTagInQuotation: boolean;
@@ -135,7 +124,7 @@ export function cutGmailQuote(document: Document): boolean {
   const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
 
   // If no quote was found, or if that quote was a forward, return false.
-  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, TalonRegexp.Forward)))
+  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)))
     return false;
 
   // Otherwise, remove the quote from the document and return.
@@ -224,7 +213,7 @@ export function cutById(document: Document): boolean {
   let found = false;
 
   // For each known Quote Id, remove any corresponding element.
-  for (const quoteId of TalonConstants.QuoteIds) {
+  for (const quoteId of QuoteIds) {
     const quote = <Node>XPath.select(`//*[@id="${quoteId}"]`, document, true);
     if (!quote)
       continue;
