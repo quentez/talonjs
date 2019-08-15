@@ -55,15 +55,7 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   let text = "";
   const allNodes = <Element[]>XPath.select("//*", element);
   for (const node of allNodes) {
-    let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === NodeTypes.TEXT_NODE && node.firstChild.nodeValue) || '').trim();
-    const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === NodeTypes.TEXT_NODE && node.nextSibling.nodeValue) || '').trim();
-
-    if (HardbreaksTag.indexOf(node.nodeName.toLowerCase()) >= 0
-      && text && text[text.length - 1] !== "\n")
-      nodeValue += "\n";
-
-    let nodeText = nodeValue + sibillingValue;
-    nodeText = nodeText.replace('\\n', '\n');
+    const nodeText = extractTextFromNode(node, text);
     if (nodeText.length > 1) {
       if (!ignoreBlockTags && BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
         text += "\n";
@@ -83,6 +75,20 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   // Remove excessive new lines from the result and return.
   return removeExcessiveNewlines(text);
 };
+
+function extractTextFromNode(node: Node, text: String) {
+  let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === NodeTypes.TEXT_NODE && node.firstChild.nodeValue) || '').trim();
+  const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === NodeTypes.TEXT_NODE && node.nextSibling.nodeValue) || '').trim();
+
+  if (HardbreaksTag.indexOf(node.nodeName.toLowerCase()) >= 0
+    && text && text[text.length - 1] !== "\n")
+    nodeValue += "\n";
+
+    let nodeText = nodeValue + sibillingValue;
+    nodeText = nodeText.replace('\\n', '\n');
+
+  return nodeText;
+}
 
 /**
  * Ensure that an HTML document always has <html> and <body> tags.
