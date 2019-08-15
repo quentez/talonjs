@@ -84,10 +84,8 @@ function extractTextFromNode(node: Node, text: String) {
     && text && text[text.length - 1] !== "\n")
     nodeValue += "\n";
 
-    let nodeText = nodeValue + sibillingValue;
-    nodeText = nodeText.replace('\\n', '\n');
-
-  return nodeText;
+  let nodeText = nodeValue + sibillingValue;
+  return nodeText.replace('\\n', '\n');
 }
 
 /**

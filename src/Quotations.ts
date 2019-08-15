@@ -144,7 +144,7 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
   quoteWasFound?: boolean,
   error?: string
 } {
-  const messagePlainText = preprocess(elementToText(xmlDocument, oprions.ignoreBlockTags), "\n", ContentTypeTextPlain);
+  const messagePlainText = preprocess(elementToText(xmlDocument, options.ignoreBlockTags), "\n", ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
 
   // Stop here if the message is too long.
