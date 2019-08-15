@@ -1,7 +1,7 @@
 import * as Cheerio from 'cheerio';
 import * as XmlDom from 'xmldom';
 
-import { ContentType, ContentTypeTextPlain, MaxLinesCount, NodeLimit, SplitterMaxLines, NodeType } from './Constants';
+import { ContentType, ContentTypeTextPlain, MaxLinesCount, NodeLimit, SplitterMaxLines, NodeTypes } from './Constants';
 import {
   addCheckpoint,
   cutBlockquote,
@@ -105,20 +105,20 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
   if (numberOfCheckpoints >= NodeLimit)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
-  let extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, false);
+  let extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, {ignoreBlockTags: false});
   if (extractQuoteHtml.error)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
   // Make sure we did not miss a quote due to some parsing error
   if (!extractQuoteHtml.quoteWasFound)
-    extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, true);
+    extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, {ignoreBlockTags: true});
 
-  if(extractQuoteHtml.quoteWasFound) {
+  if (extractQuoteHtml.quoteWasFound) {
     // Remove the tags that we marked as quotation from the HTML.
     deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints);
 
     // Fix quirk in XmlDom.
-    if (xmlDocumentCopy.nodeType === NodeType.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)
+    if (xmlDocumentCopy.nodeType === NodeTypes.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)
       (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
     // Serialize and return.
@@ -135,13 +135,16 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     return { body: messageBody, didFindQuote: false };
 }
 
+interface extractQuoteOption {
+  ignoreBlockTags?: boolean
+}
 
-function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, ignoreBlockTags: Boolean): {
+function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, options: extractQuoteOption): {
   quotationCheckpoints?: Array<boolean>,
   quoteWasFound?: boolean,
   error?: string
 } {
-  const messagePlainText = preprocess(elementToText(xmlDocument, ignoreBlockTags), "\n", ContentTypeTextPlain);
+  const messagePlainText = preprocess(elementToText(xmlDocument, oprions.ignoreBlockTags), "\n", ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
 
   // Stop here if the message is too long.
@@ -221,7 +224,7 @@ export function preprocess(messageBody: string, delimiter: string, contentType: 
  * e - empty line.
  * m - line that starts with quotation marker '>'
  * s - splitter line.
- * f - forwarde line.
+ * f - forward line.
  * t - presumably lines from that last message in the conversation.
  *
  * @params {string[]} lines - Array of lines to mark.

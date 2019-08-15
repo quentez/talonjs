@@ -13,9 +13,9 @@ export const CheckpointPrefix = "#!%!";
 export const CheckpointSuffix = "!%!#";
 
 export const BlockTags = ["div", "p", "ul", "li", "h1", "h2", "h3"];
-export const Hardbreaks = ["br", "hr", "tr"];
+export const HardbreaksTag = ["br", "hr", "tr"];
 
-export enum NodeType {
+export enum NodeTypes {
   ELEMENT_NODE = 1,
   TEXT_NODE = 3,
   DOCUMENT_NODE = 9
