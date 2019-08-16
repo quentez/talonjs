@@ -1,6 +1,6 @@
 import * as XPath from 'xpath';
 
-import { BlockTags, HardbreaksTag, NodeTypes } from './Constants';
+import { BlockTags, HardbreakTags, NodeTypes } from './Constants';
 import { DelimiterRegexp } from './Regexp';
 
 /**
@@ -57,10 +57,11 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   for (const node of allNodes) {
     const nodeText = extractTextFromNode(node, text);
     if (nodeText.length > 1) {
-      if (!ignoreBlockTags && BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
+      const nodeName = node.nodeName.toLowerCase();
+      if (!ignoreBlockTags && BlockTags.some(blockTag => nodeName.includes(blockTag)))
         text += "\n";
 
-      if (node.nodeName.toLowerCase() === "li")
+      if (nodeName === "li")
         text += "  * ";
 
       // Add this element's text to the result.
@@ -80,7 +81,7 @@ function extractTextFromNode(node: Node, text: String) {
   let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === NodeTypes.TEXT_NODE && node.firstChild.nodeValue) || '').trim();
   const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === NodeTypes.TEXT_NODE && node.nextSibling.nodeValue) || '').trim();
 
-  if (HardbreaksTag.indexOf(node.nodeName.toLowerCase()) >= 0
+  if (HardbreakTags.indexOf(node.nodeName.toLowerCase()) >= 0
     && text && text[text.length - 1] !== "\n")
     nodeValue += "\n";
 
