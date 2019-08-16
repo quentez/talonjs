@@ -58,10 +58,10 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
     const nodeText = extractTextFromNode(node, text);
     if (nodeText.length > 1) {
       const nodeName = node.nodeName.toLowerCase();
-      if (!ignoreBlockTags && BlockTags.some(blockTag => nodeName.includes(blockTag)))
+      if (!ignoreBlockTags && BlockTags.some(blockTag => nodeName === blockTag))
         text += "\n";
 
-      if (nodeName === "li")
+      if (node.nodeName.toLowerCase() === "li")
         text += "  * ";
 
       // Add this element's text to the result.
