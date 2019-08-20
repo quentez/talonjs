@@ -1,6 +1,6 @@
 import * as XPath from 'xpath';
 
-import { CheckpointPrefix, CheckpointSuffix, NodeLimit, QuoteIds } from './Constants';
+import { CheckpointPrefix, CheckpointSuffix, NodeLimit, QuoteIds, NodeTypes } from './Constants';
 import { ForwardRegexp } from './Regexp';
 import { matchStart } from './Utils';
 
@@ -15,7 +15,7 @@ import { matchStart } from './Utils';
  */
 export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0): number {
   // Update the text for this element.
-  if (element.firstChild && element.firstChild.nodeType === 3)
+  if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
     element.replaceChild(document.createTextNode(`${element.firstChild.nodeValue || ""}${CheckpointPrefix}${count}${CheckpointSuffix}`), element.firstChild);
   else
     element.nodeValue = `${CheckpointPrefix}${count}${CheckpointSuffix}`;
@@ -32,7 +32,7 @@ export function addCheckpoint(document: Document, element: Node, count: number =
     }
 
   // Also update the following text node, if any.
-  if (element.nextSibling && element.nextSibling.nodeType === 3)
+  if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
     element.parentNode.replaceChild(document.createTextNode(`${element.nextSibling.nodeValue || ""}${CheckpointPrefix}${count}${CheckpointSuffix}`), element.nextSibling);
   else if (element.parentNode)
     element.parentNode.appendChild(document.createTextNode(`${CheckpointPrefix}${count}${CheckpointSuffix}`));
@@ -61,7 +61,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
 
   // Check if this element is a quotation tag.
   if (quotationCheckpoints[count]) {
-    if (element.firstChild && element.firstChild.nodeType === 3)
+    if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
       element.replaceChild(document.createTextNode(""), element.firstChild);
     else
       element.nodeValue = "";
@@ -79,7 +79,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   if (count < NodeLimit && !preserveTable)
     for (let index = 0; index < element.childNodes.length && count < NodeLimit; index++) {
       const node = element.childNodes.item(index);
-      if (node.nodeType !== 1)
+      if (node.nodeType !== NodeTypes.ELEMENT_NODE)
         continue;
 
       let isChildTagInQuotation: boolean;
@@ -94,7 +94,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
 
   // If needed, clear the following text node.
   if (quotationCheckpoints[count]) {
-    if (element.nextSibling && element.nextSibling.nodeType === 3)
+    if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
       element.parentNode.replaceChild(document.createTextNode(""), element.nextSibling);
   } else {
     isTagInQuotation = false;
