@@ -114,6 +114,13 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     if (xmlDocumentCopy.nodeType === NodeTypes.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)
       (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
+    // Cut empty blockQuote markers
+    cutGmailQuote(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true})
+    || cutZimbraQuote(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true})
+    || cutBlockquote(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true})
+    || cutMicrosoftQuote(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true})
+    || cutById(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true});
+
     // Serialize and return.
     return {
       body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true),
@@ -121,11 +128,11 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     }
   }
    // Try and cut the quote of one of the known types.
-   const cutQuotations = cutGmailQuote(xmlDocument)
-   || cutZimbraQuote(xmlDocument)
-   || cutBlockquote(xmlDocument)
-   || cutMicrosoftQuote(xmlDocument)
-   || cutById(xmlDocument);
+   const cutQuotations = cutGmailQuote(xmlDocumentCopy)
+   || cutZimbraQuote(xmlDocumentCopy)
+   || cutBlockquote(xmlDocumentCopy)
+   || cutMicrosoftQuote(xmlDocumentCopy)
+   || cutById(xmlDocumentCopy);
 
   // Otherwise, if we found a known quote earlier, return the content before.
   if (cutQuotations)
@@ -163,7 +170,6 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
   lines = lines.map(line => line.replace(new RegExp(CheckPointRegexp.source, "g"), ""));
   // Use the plain text quotation algorithm.
   const markers = markMessageLines(lines);
-
   const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
@@ -254,6 +260,7 @@ export function markMessageLines(lines: string[]): string {
       // If none was found, assume it's a line from the last message in the conversation.
       if (!splitterMatch) {
         markers[index] = "t";
+
       // Otherwise, append as many splitter markers, as lines in the splitter.
       } else {
         const splitterLines = splitLines(splitterMatch[0]);

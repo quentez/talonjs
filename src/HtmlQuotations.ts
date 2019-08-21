@@ -112,6 +112,9 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
     isTagInQuotation
   };
 }
+interface cutQuoteOption {
+  onlyRemoveEmptyBlocks?: boolean
+}
 
 /**
  * Cuts the outermost block element with the class "gmail_quote".
@@ -119,13 +122,16 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
  * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutGmailQuote(document: Document): boolean {
+export function cutGmailQuote(document: Document, options?: cutQuoteOption): boolean {
   // Find the first element that fits our criteria.
   const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
 
   // If no quote was found, or if that quote was a forward, return false.
   if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)))
     return false;
+
+  if (options && options.onlyRemoveEmptyBlocks && gmailQuote.textContent.trim() !== '')
+    return
 
   // Otherwise, remove the quote from the document and return.
   gmailQuote.parentNode.removeChild(gmailQuote);
@@ -138,7 +144,7 @@ export function cutGmailQuote(document: Document): boolean {
  * @param {Document} document - The document to cut the elements from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutMicrosoftQuote(document: Document): boolean {
+export function cutMicrosoftQuote(document: Document, options?: cutQuoteOption): boolean {
   let splitter = <Node>XPath.select(
     // Outlook 2007, 2010.
     "//*[local-name(.)='div' and @style='border:none;" +
@@ -180,6 +186,9 @@ export function cutMicrosoftQuote(document: Document): boolean {
   if (!splitter)
     return false;
 
+  if (options && options.onlyRemoveEmptyBlocks && splitter.textContent.trim() !== '')
+    return
+
   // Remove the splitter, and everything after it.
   while (splitter.nextSibling)
     splitter.parentNode.removeChild(splitter.nextSibling);
@@ -194,10 +203,13 @@ export function cutMicrosoftQuote(document: Document): boolean {
  * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutZimbraQuote(document: Document): boolean {
+export function cutZimbraQuote(document: Document, options?: cutQuoteOption): boolean {
   const splitter = <Node>XPath.select("//*[local-name(.)='hr' and @data-marker=\"__DIVIDER__\"]", document, true);
   if (!splitter)
     return false;
+
+  if (options && options.onlyRemoveEmptyBlocks && splitter.textContent.trim() !== '')
+    return
 
   splitter.parentNode.removeChild(splitter);
   return true;
@@ -209,7 +221,7 @@ export function cutZimbraQuote(document: Document): boolean {
  * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutById(document: Document): boolean {
+export function cutById(document: Document, options?: cutQuoteOption): boolean {
   let found = false;
 
   // For each known Quote Id, remove any corresponding element.
@@ -218,6 +230,8 @@ export function cutById(document: Document): boolean {
     if (!quote)
       continue;
 
+    if (options && options.onlyRemoveEmptyBlocks && quote.textContent.trim() !== '')
+      return
     found = true;
     quote.parentNode.removeChild(quote);
   }
@@ -232,7 +246,7 @@ export function cutById(document: Document): boolean {
  * @param {Document} document - The document to cut the element from.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutBlockquote(document: Document): boolean {
+export function cutBlockquote(document: Document, options?: cutQuoteOption): boolean {
   const quote = <Node>XPath.select(
     "(.//*[local-name(.)='blockquote'])" +
     "[not(@class=\"gmail_quote\") and not(ancestor::blockquote)]" +
@@ -241,6 +255,9 @@ export function cutBlockquote(document: Document): boolean {
 
   if (!quote)
     return false;
+
+  if (options && options.onlyRemoveEmptyBlocks && quote.textContent.trim() !== '')
+    return
 
   quote.parentNode.removeChild(quote);
   return true;
