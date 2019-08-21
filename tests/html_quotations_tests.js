@@ -235,7 +235,6 @@ describe("Html Quotations", function () {
         </body>`;
 
       const reply = "<html><body><div>Blah<br/><br/></div></body></html>";
-
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
   });
@@ -273,6 +272,7 @@ describe("Html Quotations", function () {
 
         // Iterate on the files we found.
         return async.eachSeries(files, (file, nextFile) => {
+
           // Read the file.
           return fs.readFile(path.join(htmlRepliesPath, file), "utf-8", (err, html) => {
             if (err)
@@ -317,8 +317,6 @@ describe("Html Quotations", function () {
                 return nextFile(err2);
 
               const replyHtml = quotations.extractFromHtml(html).body;
-              const file2 = file;
-
               assert.equal(
                 removeWhitespace(htmlStripped),
                 removeWhitespace(replyHtml));
@@ -387,6 +385,30 @@ describe("Html Quotations", function () {
       });
     });
 
+    it("should correctly parse quotation.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_error_quote.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+        // Extract the quote.
+        const replyHtml = quotations.extractFromHtml(html).body;
+        assert.notInclude(replyHtml, "Bla");
+        return done();
+      });
+    });
+
+    it("should correctly parse email with \n.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_error_line_break.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+        // Extract the quote.
+        const replyHtml = quotations.extractFromHtml(html).body;
+        assert.notInclude(replyHtml, "Hello from quote");
+        return done();
+      });
+    });
+
     it("should test emails that used to crash extractFromHtml.", function (done) {
       // List the fixtures.
       const htmlRepliesPath = path.join("tests", "fixtures", "front", "crashers");
@@ -408,6 +430,7 @@ describe("Html Quotations", function () {
       });
     });
   });
+
 });
 
 function removeWhitespace(str) {

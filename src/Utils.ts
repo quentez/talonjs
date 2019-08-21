@@ -1,6 +1,6 @@
 import * as XPath from 'xpath';
 
-import { BlockTags, Hardbreaks } from './Constants';
+import { BlockTags, HardbreakTags, NodeTypes } from './Constants';
 import { DelimiterRegexp } from './Regexp';
 
 /**
@@ -41,7 +41,7 @@ export function matchStart(str: string, regexp: RegExp): RegExpMatchArray {
  * @param {Node} element - The HTML element to stringify.
  * @return {string} The string representation of the provided element.
  */
-export function elementToText(element: Node): string {
+export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   // Remove <style> elements.
   const styleNodes = <Node[]>XPath.select("//style", element);
   for (const styleNode of styleNodes)
@@ -53,37 +53,41 @@ export function elementToText(element: Node): string {
     commentNode.parentNode.removeChild(commentNode);
 
   let text = "";
-
   const allNodes = <Element[]>XPath.select("//*", element);
   for (const node of allNodes) {
-    const nodeText = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === 3 && node.firstChild.nodeValue) || "")
-      + ((node.nextSibling && node.nextSibling.nodeType === 3 && node.nextSibling.nodeValue) || "");
-
+    const nodeText = extractTextFromNode(node, text);
     if (nodeText.length > 1) {
-      // Depending on the tag name, prepend content.
-      if (BlockTags.indexOf(node.nodeName.toLowerCase()) >= 0)
+      const nodeName = node.nodeName.toLowerCase();
+      if (!ignoreBlockTags && BlockTags.some(blockTag => nodeName === blockTag))
         text += "\n";
+
       if (node.nodeName.toLowerCase() === "li")
         text += "  * ";
 
       // Add this element's text to the result.
-      text += nodeText.trim() + " ";
+      text += `${nodeText} `;
 
       // Add href to the output.
       const href = node.attributes.getNamedItem("href");
       if (href)
         text += `(${href}) `;
     }
-
-    // If needed, add a line break after this element.
-    if (Hardbreaks.indexOf(node.nodeName.toLowerCase()) >= 0
-        && text && text[text.length - 1] !== "\n")
-      text += "\n";
   }
-
   // Remove excessive new lines from the result and return.
   return removeExcessiveNewlines(text);
 };
+
+function extractTextFromNode(node: Node, text: String) {
+  let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === NodeTypes.TEXT_NODE && node.firstChild.nodeValue) || '').trim();
+  const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === NodeTypes.TEXT_NODE && node.nextSibling.nodeValue) || '').trim();
+
+  if (HardbreakTags.indexOf(node.nodeName.toLowerCase()) >= 0
+    && text && text[text.length - 1] !== "\n")
+    nodeValue += "\n";
+
+  let nodeText = nodeValue + sibillingValue;
+  return nodeText.replace('\\n', '\n');
+}
 
 /**
  * Ensure that an HTML document always has <html> and <body> tags.

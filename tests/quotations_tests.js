@@ -378,8 +378,17 @@ describe("Quotations", function () {
       assert.equal("Blah", quotations.extractFromPlain(messageBody).body);
     });
 
-    it("should pre-process and post-process links.", function () {
+    it("should handle a message with 2 links.", function () {
       const messageBody = "<http://link1> <http://link2>";
+      assert.equal(messageBody, quotations.extractFromPlain(messageBody).body);
+    });
+
+    it("should not throw errors on messages with malformed links.", function () {
+      const messageBody = "http://test.lever.co/YOU HAVE AN INTERVIEW TODAY\n" +
+      "https://test.lever.co/interviews/07a605a0-0d0a-00e8-00aa-f02ca5350180 " +
+      "is coming up today athttps://www.google.com/calendar/event?eid=Z2FrbzhxcW0000YwbmtmMDN1ZW" +
+      "Z2OHAycnMgbGV2Z0000W1vLmNvbV82am00000000hvY3RjN200000000Vjc00000Bn.\n\nhttps://test.lever.co/" +
+      "interviews/0000a5ab-000b-43aa-a00a-f020003aaa84";
       assert.equal(messageBody, quotations.extractFromPlain(messageBody).body);
     });
   });
@@ -640,3 +649,4 @@ describe("Quotations", function () {
     });
   });
 });
+

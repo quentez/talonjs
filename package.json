@@ -1,6 +1,6 @@
 {
   "name": "talonjs",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Javascript port of the Mailgun/Talon library.",
   "main": "bin/Talon.js",
   "repository": "https://github.com/quentez/talonjs",
