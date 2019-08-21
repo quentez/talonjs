@@ -33,15 +33,20 @@ export function matchStart(str: string, regexp: RegExp): RegExpMatchArray {
   return !match || match.index > 0 ? null : match;
 };
 
+interface ElementToTextOptions {
+  ignoreBlockTags?: boolean
+}
+
 /**
  * Dead-simple HTML-to-text converter.
  *
  * "one<br>two<br>three" => "one\ntwo\nthree"
  *
  * @param {Node} element - The HTML element to stringify.
+ * @param {ElementToTextOptions} options - Tweak the behavior of converter.
  * @return {string} The string representation of the provided element.
  */
-export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
+export function elementToText(element: Node, {ignoreBlockTags}: ElementToTextOptions = {}): string {
   // Remove <style> elements.
   const styleNodes = <Node[]>XPath.select("//style", element);
   for (const styleNode of styleNodes)
@@ -55,10 +60,11 @@ export function elementToText(element: Node, ignoreBlockTags: Boolean): string {
   let text = "";
   const allNodes = <Element[]>XPath.select("//*", element);
   for (const node of allNodes) {
+    // Depending on the tag name, prepend content.
     const nodeText = extractTextFromNode(node, text);
     if (nodeText.length > 1) {
       const nodeName = node.nodeName.toLowerCase();
-      if (!ignoreBlockTags && BlockTags.some(blockTag => nodeName === blockTag))
+      if (!ignoreBlockTags && BlockTags.includes(nodeName))
         text += "\n";
 
       if (node.nodeName.toLowerCase() === "li")

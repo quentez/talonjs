@@ -49,5 +49,5 @@ exports.htmlToText = function (html) {
   const document = Cheerio.load(html);
   const xmlDocument = xmlDomParser.parseFromString(document.xml());
 
-  return talonUtils.elementToText(xmlDocument, false);
+  return talonUtils.elementToText(xmlDocument);
 };

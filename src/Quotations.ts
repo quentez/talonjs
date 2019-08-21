@@ -135,16 +135,18 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     return { body: messageBody, didFindQuote: false };
 }
 
-interface extractQuoteOption {
+interface ExtractQuoteOptions {
   ignoreBlockTags?: boolean
 }
 
-function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, options: extractQuoteOption): {
+interface ExtractQuoteResult {
   quotationCheckpoints?: Array<boolean>,
   quoteWasFound?: boolean,
   error?: string
-} {
-  const messagePlainText = preprocess(elementToText(xmlDocument, options.ignoreBlockTags), "\n", ContentTypeTextPlain);
+}
+
+function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, {ignoreBlockTags}: ExtractQuoteOptions): ExtractQuoteResult {
+  const messagePlainText = preprocess(elementToText(xmlDocument, {ignoreBlockTags}), "\n", ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
 
   // Stop here if the message is too long.
@@ -237,10 +239,10 @@ export function markMessageLines(lines: string[]): string {
   let index = 0;
   while (index < lines.length) {
     const line = lines[index];
+
     // Empty line.
     if (!line) {
       markers[index] = "e";
-
     // Line with a quotation marker.
     } else if (matchStart(line, QuotePatternRegexp)) {
       markers[index] = "m";
@@ -264,6 +266,7 @@ export function markMessageLines(lines: string[]): string {
         index += splitterLines.length - 1;
       }
     }
+
     index++;
   }
 
