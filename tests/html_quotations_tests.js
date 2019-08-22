@@ -315,7 +315,7 @@ describe("Html Quotations", function () {
               if (err2)
                 return nextFile(err2);
 
-              const replyHtml = quotations.extractFromHtml(html, {maxLinesCount: 5000, nodeLimit: 5000}).body;
+              const replyHtml = quotations.extractFromHtml(html).body;
               assert.equal(
                 removeWhitespace(htmlStripped),
                 removeWhitespace(replyHtml));

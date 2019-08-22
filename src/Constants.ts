@@ -4,8 +4,8 @@ export const ContentTypeTextPlain: ContentType = "text/plain";
 export const ContentTypeTextHtml: ContentType = "text/html";
 
 export const SplitterMaxLines = 4;
-export const MaxLinesCount = 1000;
-export const NodeLimit = 1000;
+export const MaxLinesCount = 4000;
+export const NodeLimit = 4000;
 
 export const QuoteIds = ["OLK_SRC_BODY_SECTION"];
 
