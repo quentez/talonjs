@@ -53,18 +53,31 @@ export function addCheckpoint(document: Document, element: Node, count: number =
  * @param {number} level - The recursion call depth.
  * @return {object} The updated count, and whether this tag was part of a quote or not.
  */
-export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], count: number = 0, level: number = 0): {
+export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], count: number = 0, level: number = 0, quoteStartDepth? : number): {
   count: number,
-  isTagInQuotation: boolean
+  isTagInQuotation: boolean,
+  quoteStartDepth: number
 } {
   let isTagInQuotation = true;
+  if (quoteStartDepth && level < quoteStartDepth)
+    return {
+      count,
+      isTagInQuotation: false,
+      quoteStartDepth
+    };
 
   // Check if this element is a quotation tag.
   if (quotationCheckpoints[count]) {
-    if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
-      element.replaceChild(document.createTextNode(""), element.firstChild);
-    else
-      element.nodeValue = "";
+    if (isTagInQuotation) {
+      // Save the depth of the begining of the quote
+      if (!quoteStartDepth)
+        quoteStartDepth= level -1;
+
+      if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
+          element.replaceChild(document.createTextNode(""), element.firstChild);
+      else
+        element.nodeValue = "";
+    }
   } else {
     isTagInQuotation = false;
   }
@@ -83,7 +96,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
         continue;
 
       let isChildTagInQuotation: boolean;
-      ({ count, isTagInQuotation: isChildTagInQuotation } = deleteQuotationTags(document, node, quotationCheckpoints, count, level + 1));
+      ({ count, isTagInQuotation: isChildTagInQuotation, quoteStartDepth } = deleteQuotationTags(document, node, quotationCheckpoints, count, level + 1, quoteStartDepth));
 
       if (!isChildTagInQuotation)
         continue;
@@ -94,8 +107,8 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
 
   // If needed, clear the following text node.
   if (quotationCheckpoints[count]) {
-    if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
-      element.parentNode.replaceChild(document.createTextNode(""), element.nextSibling);
+      if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
+        element.parentNode.replaceChild(document.createTextNode(""), element.nextSibling);
   } else {
     isTagInQuotation = false;
   }
@@ -106,10 +119,14 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
     for (const node of quotationChildren)
       node.parentNode.removeChild(node);
 
+  if (isTagInQuotation && !quoteStartDepth)
+    quoteStartDepth = level;
+
   // Return the updated count, and whether this element was part of a quote or not.
   return {
     count,
-    isTagInQuotation
+    isTagInQuotation,
+    quoteStartDepth
   };
 }
 interface cutQuoteOption {

@@ -280,7 +280,6 @@ describe("Html Quotations", function () {
 
             const replyHtml = quotations.extractFromHtml(html).body;
             const replyPlain = utils.htmlToText(replyHtml);
-
             assert.equal(
               removeWhitespace("Hi. I am fine.\n\nThanks,\nAlex"),
               removeWhitespace(replyPlain));
@@ -316,7 +315,7 @@ describe("Html Quotations", function () {
               if (err2)
                 return nextFile(err2);
 
-              const replyHtml = quotations.extractFromHtml(html).body;
+              const replyHtml = quotations.extractFromHtml(html, {maxLinesCount: 5000, nodeLimit: 5000}).body;
               assert.equal(
                 removeWhitespace(htmlStripped),
                 removeWhitespace(replyHtml));
@@ -417,6 +416,18 @@ describe("Html Quotations", function () {
         // Extract the quote.
         const replyHtml = quotations.extractFromHtml(html).body;
         assert.include(replyHtml, "Too often, how we work with people outside");
+        return done();
+      });
+    });
+
+      it("should correctly parse email with signature in reply.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_signature.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+        // Extract the quote.
+        const replyHtml = quotations.extractFromHtml(html).body;
+        assert.include(replyHtml, "Anna Kim");
         return done();
       });
     });
