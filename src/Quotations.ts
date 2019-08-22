@@ -115,11 +115,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
       (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
     // Cut empty blockQuote markers
-    cutGmailQuote(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true})
-    || cutZimbraQuote(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true})
-    || cutBlockquote(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true})
-    || cutMicrosoftQuote(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true})
-    || cutById(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true});
+    cutQuotatio(xmlDocumentCopy, true);
 
     // Serialize and return.
     return {
@@ -128,11 +124,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     }
   }
    // Try and cut the quote of one of the known types.
-   const cutQuotations = cutGmailQuote(xmlDocumentCopy)
-   || cutZimbraQuote(xmlDocumentCopy)
-   || cutBlockquote(xmlDocumentCopy)
-   || cutMicrosoftQuote(xmlDocumentCopy)
-   || cutById(xmlDocumentCopy);
+   const cutQuotations = cutQuotatio(xmlDocumentCopy);
 
   // Otherwise, if we found a known quote earlier, return the content before.
   if (cutQuotations)
@@ -140,6 +132,14 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
   // Finally, if no quote was found, return the original HTML.
   else
     return { body: messageBody, didFindQuote: false };
+}
+
+function cutQuotatio(xmlDocument: Document, onlyRemoveEmptyBlocks?: boolean) {
+  return cutGmailQuote(xmlDocument, {onlyRemoveEmptyBlocks})
+  || cutZimbraQuote(xmlDocument, {onlyRemoveEmptyBlocks})
+  || cutBlockquote(xmlDocument, {onlyRemoveEmptyBlocks})
+  || cutMicrosoftQuote(xmlDocument, {onlyRemoveEmptyBlocks})
+  || cutById(xmlDocument, {onlyRemoveEmptyBlocks});
 }
 
 interface extractQuoteOption {
