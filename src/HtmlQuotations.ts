@@ -45,6 +45,7 @@ export function addCheckpoint(document: Document, element: Node, count: number =
 
 /**
  * Remove tags with quotation checkpoints from the provided HTML element and all its descendants.
+ * Only remove the child under the first quotation occurence
  *
  * @param {Document} document - The DOM document.
  * @param {Node} element - The HTML element to edit.
@@ -68,16 +69,14 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
 
   // Check if this element is a quotation tag.
   if (quotationCheckpoints[count]) {
-    if (isTagInQuotation) {
+    if (isTagInQuotation && !quoteStartDepth)
       // Save the depth of the begining of the quote
-      if (!quoteStartDepth)
-        quoteStartDepth= level -1;
+        quoteStartDepth= level - 1;
 
-      if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
-          element.replaceChild(document.createTextNode(""), element.firstChild);
-      else
-        element.nodeValue = "";
-    }
+    if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
+        element.replaceChild(document.createTextNode(""), element.firstChild);
+    else
+      element.nodeValue = "";
   } else {
     isTagInQuotation = false;
   }
@@ -107,8 +106,8 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
 
   // If needed, clear the following text node.
   if (quotationCheckpoints[count]) {
-      if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
-        element.parentNode.replaceChild(document.createTextNode(""), element.nextSibling);
+    if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
+      element.parentNode.replaceChild(document.createTextNode(""), element.nextSibling);
   } else {
     isTagInQuotation = false;
   }
@@ -118,9 +117,6 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   if (!isTagInQuotation)
     for (const node of quotationChildren)
       node.parentNode.removeChild(node);
-
-  if (isTagInQuotation && !quoteStartDepth)
-    quoteStartDepth = level;
 
   // Return the updated count, and whether this element was part of a quote or not.
   return {
