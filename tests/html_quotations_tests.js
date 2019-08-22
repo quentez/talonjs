@@ -427,7 +427,7 @@ describe("Html Quotations", function () {
 
         // Extract the quote.
         const replyHtml = quotations.extractFromHtml(html).body;
-        assert.include(replyHtml, "Anna Kim");
+        assert.include(replyHtml, "Philip Anders");
         return done();
       });
     });

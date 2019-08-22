@@ -108,7 +108,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
 
   if (extractQuoteHtml.quoteWasFound) {
     // Remove the tags that we marked as quotation from the HTML.
-    deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints);
+    deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints, new Set(extractQuoteHtml.splittersTags));
 
     // Fix quirk in XmlDom.
     if (xmlDocumentCopy.nodeType === NodeTypes.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)
@@ -149,7 +149,8 @@ interface extractQuoteOption {
 function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, options: extractQuoteOption): {
   quotationCheckpoints?: Array<boolean>,
   quoteWasFound?: boolean,
-  error?: string
+  error?: string,
+  splittersTags?: Array<number>
 } {
   const messagePlainText = preprocess(elementToText(xmlDocument, options.ignoreBlockTags), "\n", ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
@@ -174,12 +175,17 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
   const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
+  const splittersTags = [];
   if (wereLinesDeleted)
-    for (let index = firstDeletedLine; index <= lastDeletedLine; index++)
+    for (let index = firstDeletedLine; index <= lastDeletedLine; index++) {
       for (let checkpoint of lineCheckpoints[index])
         quotationCheckpoints[checkpoint] = true;
+      if(markers[index] === 's')
+        splittersTags.push(...lineCheckpoints[index]);
 
-  return {quoteWasFound: wereLinesDeleted, quotationCheckpoints: quotationCheckpoints}
+    }
+
+  return {quoteWasFound: wereLinesDeleted, quotationCheckpoints: quotationCheckpoints, splittersTags}
 }
 
 /*
@@ -272,9 +278,13 @@ export function markMessageLines(lines: string[]): string {
       // Otherwise, append as many splitter markers, as lines in the splitter.
       } else {
         const splitterLines = splitLines(splitterMatch[0]);
-        for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++)
+        for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++) {
+          // if(splitterLines[splitterIndex].trim() === '') {
+            // markers[index + splitterIndex] = "t";
+            // continue;
+          // }
           markers[index + splitterIndex] = "s";
-          // console.log('s');
+        }
 
         // Skip as many lines as we just updated.
         index += splitterLines.length - 1;
