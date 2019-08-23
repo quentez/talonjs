@@ -143,6 +143,7 @@ export interface cutQuoteOption {
  * Cuts the outermost block element with the class "gmail_quote".
  *
  * @param {Document} document - The document to cut the element from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutGmailQuote(document: Document, options?: cutQuoteOption): boolean {
@@ -150,24 +151,22 @@ export function cutGmailQuote(document: Document, options?: cutQuoteOption): boo
   const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
 
   // If no quote was found, or if that quote was a forward, return false.
-  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)))
+  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)) || shouldNotRemoveQuote(gmailQuote, options))
     return false;
-
-  if (shouldRemoveQuote(gmailQuote, options))
-    return
 
   // Otherwise, remove the quote from the document and return.
   gmailQuote.parentNode.removeChild(gmailQuote);
   return true;
 };
 
-function shouldRemoveQuote(node: Node, options?: cutQuoteOption) {
+function shouldNotRemoveQuote(node: Node, options?: cutQuoteOption) {
   return options && options.onlyRemoveEmptyBlocks && node.textContent.trim() !== '';
 }
 /**
  * Cuts the Outlook splitter block and all the following block.
  *
  * @param {Document} document - The document to cut the elements from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutMicrosoftQuote(document: Document, options?: cutQuoteOption): boolean {
@@ -209,11 +208,8 @@ export function cutMicrosoftQuote(document: Document, options?: cutQuoteOption):
   }
 
   // If no splitter was found at this point, stop.
-  if (!splitter)
+  if (!splitter|| shouldNotRemoveQuote(splitter, options))
     return false;
-
-  if (shouldRemoveQuote(splitter, options))
-    return
 
   // Remove the splitter, and everything after it.
   while (splitter.nextSibling)
@@ -227,15 +223,13 @@ export function cutMicrosoftQuote(document: Document, options?: cutQuoteOption):
  * Cuts a Zimbra quote block.
  *
  * @param {Document} document - The document to cut the element from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutZimbraQuote(document: Document, options?: cutQuoteOption): boolean {
   const splitter = <Node>XPath.select("//*[local-name(.)='hr' and @data-marker=\"__DIVIDER__\"]", document, true);
-  if (!splitter)
+  if (!splitter || shouldNotRemoveQuote(splitter, options))
     return false;
-
-  if (shouldRemoveQuote(splitter, options))
-    return
 
   splitter.parentNode.removeChild(splitter);
   return true;
@@ -245,6 +239,7 @@ export function cutZimbraQuote(document: Document, options?: cutQuoteOption): bo
  * Cuts all of the outermost block elements with known quote ids.
  *
  * @param {Document} document - The document to cut the element from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutById(document: Document, options?: cutQuoteOption): boolean {
@@ -253,11 +248,8 @@ export function cutById(document: Document, options?: cutQuoteOption): boolean {
   // For each known Quote Id, remove any corresponding element.
   for (const quoteId of QuoteIds) {
     const quote = <Node>XPath.select(`//*[@id="${quoteId}"]`, document, true);
-    if (!quote)
+    if (!quote || shouldNotRemoveQuote(quote, options))
       continue;
-
-    if (shouldRemoveQuote(quote, options))
-      return
 
     found = true;
     quote.parentNode.removeChild(quote);
@@ -271,6 +263,7 @@ export function cutById(document: Document, options?: cutQuoteOption): boolean {
  * Cust the last non-nested blockquote with wrapping elements.
  *
  * @param {Document} document - The document to cut the element from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
 export function cutBlockquote(document: Document, options?: cutQuoteOption): boolean {
@@ -280,11 +273,8 @@ export function cutBlockquote(document: Document, options?: cutQuoteOption): boo
     "[last()]"
   , document, true);
 
-  if (!quote)
+  if (!quote || shouldNotRemoveQuote(quote, options))
     return false;
-
-  if (shouldRemoveQuote(quote, options))
-    return
 
   quote.parentNode.removeChild(quote);
   return true;
