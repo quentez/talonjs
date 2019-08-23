@@ -427,7 +427,7 @@ describe("Html Quotations", function () {
 
         // Extract the quote.
         const replyHtml = quotations.extractFromHtml(html).body;
-        assert.include(replyHtml, "Philip Anders");
+        assert.include(replyHtml, "Leo Vck");
         return done();
       });
     });
