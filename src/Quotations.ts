@@ -171,7 +171,6 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
   lines = lines.map(line => line.replace(new RegExp(CheckPointRegexp.source, "g"), ""));
   // Use the plain text quotation algorithm.
   const markers = markMessageLines(lines);
-  // console.log(markers);
   const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
@@ -283,6 +282,7 @@ export function markMessageLines(lines: string[]): string {
         const splitterLines = splitLines(splitterMatch[0]);
         for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++) {
           markers[index + splitterIndex] = "s";
+          // console.log('s');
         }
 
         // Skip as many lines as we just updated.

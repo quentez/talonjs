@@ -7,7 +7,7 @@ export const DelimiterRegexp = new RegExp("\\r?\\n");
 export const ForwardRegexp = new RegExp("^[-]+[ ]*Forwarded message[ ]*[-]+$", "im");
 
 export const OnDateSomebodyWroteRegexp = new RegExp(
-  `-{0,100}[>]?[ ]?(${
+  `-{0,100}[>]?[\\s]?(${
     // Beginning of the line.
     [
       "On",       // English,
@@ -19,7 +19,7 @@ export const OnDateSomebodyWroteRegexp = new RegExp(
       "Den",      // Swedish, Danish,
       "Em"        // Portuguese
     ].join("|")
-  })[ ].{0,100}(${
+  })[\\s].{0,100}(${
     // Date and sender separator.
     [
       ",",          // Most languages separate date and sender address by comma.
@@ -40,13 +40,13 @@ export const OnDateSomebodyWroteRegexp = new RegExp(
 );
 
 export const OnDateWroteSomebodyRegexp = new RegExp(
-  `-{0,100}[>]?[ ]?(${
+  `-{0,100}[>]?[\\s]?(${
     // Beginning of the line.
     [
       "Op",
       "Am"  // German
     ].join("|")
-  })[ ].{0,100}(.*\\n){0,2}.{0,100}(${
+  })[\\s].{0,100}(.*\\n){0,2}.{0,100}(${
     // Ending of the line.
     [
       "schreef", "verzond", "geschreven", // Dutch
