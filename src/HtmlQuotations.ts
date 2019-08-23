@@ -153,7 +153,7 @@ export function cutGmailQuote(document: Document, options?: cutQuoteOption): boo
   if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)))
     return false;
 
-  if (options && options.onlyRemoveEmptyBlocks && gmailQuote.textContent.trim() !== '')
+  if (shouldRemoveQuote(gmailQuote, options))
     return
 
   // Otherwise, remove the quote from the document and return.
