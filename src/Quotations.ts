@@ -24,6 +24,7 @@ import {
   SplitterRegexps,
 } from './Regexp';
 import { elementToText, findDelimiter, matchStart, normalizeHtmlDocument, splitLines } from './Utils';
+import { QuotationInfo } from './QuotationInfo';
 
 const xmlDomParser = new XmlDom.DOMParser({ errorHandler: { warning: () => {}, error: () => {}, fatalError: (error) => { throw error; } }});
 const xmlDomSerializer = new XmlDom.XMLSerializer();
@@ -108,7 +109,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
 
   if (extractQuoteHtml.quoteWasFound) {
     // Remove the tags that we marked as quotation from the HTML.
-    deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints, new Set(extractQuoteHtml.splittersTags));
+    deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints, new QuotationInfo(new Set(extractQuoteHtml.splittersTags)));
 
     // Fix quirk in XmlDom.
     if (xmlDocumentCopy.nodeType === NodeTypes.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)

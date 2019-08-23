@@ -3,6 +3,7 @@ import * as XPath from 'xpath';
 import { CheckpointPrefix, CheckpointSuffix, NodeLimit, QuoteIds, NodeTypes } from './Constants';
 import { ForwardRegexp } from './Regexp';
 import { matchStart } from './Utils';
+import { QuotationInfo } from './QuotationInfo';
 
 /**
  * Add checkpoints to an HTML element and all its descendants.
@@ -14,7 +15,6 @@ import { matchStart } from './Utils';
  * @return {number} The total number of checkpoints in the document.
  */
 export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0): number {
-  // console.log( `count ${count} element ${element}`);
   // Update the text for this element.
   if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
     element.replaceChild(document.createTextNode(`${element.firstChild.nodeValue || ""}${CheckpointPrefix}${count}${CheckpointSuffix}`), element.firstChild);
@@ -31,7 +31,6 @@ export function addCheckpoint(document: Document, element: Node, count: number =
 
       count = addCheckpoint(document, node, count, level + 1);
     }
-    // console.log( `count ${count} element ${element}`);
 
   // Also update the following text node, if any.
   if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
@@ -45,6 +44,7 @@ export function addCheckpoint(document: Document, element: Node, count: number =
   return count;
 };
 
+
 /**
  * Remove tags with quotation checkpoints from the provided HTML element and all its descendants.
  * Only remove the child under the first quotation occurence
@@ -52,36 +52,35 @@ export function addCheckpoint(document: Document, element: Node, count: number =
  * @param {Document} document - The DOM document.
  * @param {Node} element - The HTML element to edit.
  * @param {boolean[]} quotationCheckpoints - The checkpoints for the tags to remove.
+ * @param {StartQuoteInfo} startQuoteInfo - Info of the quote we want to remove
  * @param {number} count - The number of scanned tags.
  * @param {number} level - The recursion call depth.
+ * @param {boolean} isBlockQuote - Is the current node part of a bloqkquote element
  * @return {object} The updated count, and whether this tag was part of a quote or not.
  */
-export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], startTags:Set<number>, count: number = 0, level: number = 0, quoteStartDepth? : number, isBlockQuote?: boolean): {
+export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], startQuoteInfo: QuotationInfo, count: number = 0, level: number = 0, isBlockQuote?: boolean): {
   count: number,
   isTagInQuotation: boolean,
-  quoteStartDepth: number
+  startQuoteInfo: QuotationInfo
 } {
   let isTagInQuotation = true;
   isBlockQuote = isBlockQuote? isBlockQuote : element.nodeName === 'blockquote';
-  // If we processed all the node from the quotation line and we move back to the top of the tree stop removing data
-  if (quoteStartDepth && level < quoteStartDepth && startTags.size === 0 && !isBlockQuote)
+  // If we processed all the node from the found quote stop removeing datat once we are back on top of the tree
+  if (level < startQuoteInfo.getQuoteStartDepth() && startQuoteInfo.isQuoteEmpty() && !isBlockQuote)
     return {
       count,
       isTagInQuotation: false,
-      quoteStartDepth
+      startQuoteInfo
     };
 
   // If the tag is in the splitter line remove the tag from the startTags and set the depthLevel
-  if (startTags.has(count)) {
-    startTags.delete(count);
-    if (!quoteStartDepth || level < quoteStartDepth)
-      quoteStartDepth = level;
-  }
+  if (startQuoteInfo.quoteStartWithTag(count))
+    startQuoteInfo.removeTagFromQuoteInfo(count, level);
 
   // Check if this element is a quotation tag.
   if (quotationCheckpoints[count]) {
     if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
-        element.replaceChild(document.createTextNode(""), element.firstChild);
+      element.replaceChild(document.createTextNode(""), element.firstChild);
     else
       element.nodeValue = "";
   } else {
@@ -102,7 +101,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
         continue;
 
       let isChildTagInQuotation: boolean;
-      ({ count, isTagInQuotation: isChildTagInQuotation, quoteStartDepth } = deleteQuotationTags(document, node, quotationCheckpoints, startTags, count, level + 1, quoteStartDepth, isBlockQuote));
+      ({ count, isTagInQuotation: isChildTagInQuotation, startQuoteInfo } = deleteQuotationTags(document, node, quotationCheckpoints, startQuoteInfo, count, level + 1, isBlockQuote));
 
       if (!isChildTagInQuotation)
         continue;
@@ -112,11 +111,8 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
     }
 
   // If the tag is in the splitter line remove the tag from the startTags and set the depthLevel
-  if (startTags.has(count)) {
-      startTags.delete(count);
-      if (!quoteStartDepth || level < quoteStartDepth)
-        quoteStartDepth = level;
-    }
+  if (startQuoteInfo.quoteStartWithTag(count))
+    startQuoteInfo.removeTagFromQuoteInfo(count, level);
 
   // If needed, clear the following text node.
   if (quotationCheckpoints[count]) {
@@ -136,7 +132,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   return {
     count,
     isTagInQuotation,
-    quoteStartDepth
+    startQuoteInfo
   };
 }
 interface cutQuoteOption {

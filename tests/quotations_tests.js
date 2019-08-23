@@ -135,7 +135,7 @@ describe("Quotations", function () {
         ">On 04/19/2011 07:10 AM, Roman Tkachenko wrote:\n" +
         ">\n>>\n>> Test.\n>>\n>> Roman\n\n" +
         "Regards, Roman";
-      const reply = "Test reply\nRegards, Roman";
+      const reply = "Test reply\n\nRegards, Roman";
 
       assert.equal(reply, quotations.extractFromPlain(messageBody).body);
     });
