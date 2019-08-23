@@ -135,7 +135,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
     startQuoteInfo
   };
 }
-interface cutQuoteOption {
+export interface cutQuoteOption {
   onlyRemoveEmptyBlocks?: boolean
 }
 
@@ -161,6 +161,9 @@ export function cutGmailQuote(document: Document, options?: cutQuoteOption): boo
   return true;
 };
 
+function shouldRemoveQuote(node: Node, options?: cutQuoteOption) {
+  return options && options.onlyRemoveEmptyBlocks && node.textContent.trim() !== '';
+}
 /**
  * Cuts the Outlook splitter block and all the following block.
  *
@@ -209,7 +212,7 @@ export function cutMicrosoftQuote(document: Document, options?: cutQuoteOption):
   if (!splitter)
     return false;
 
-  if (options && options.onlyRemoveEmptyBlocks && splitter.textContent.trim() !== '')
+  if (shouldRemoveQuote(splitter, options))
     return
 
   // Remove the splitter, and everything after it.
@@ -231,7 +234,7 @@ export function cutZimbraQuote(document: Document, options?: cutQuoteOption): bo
   if (!splitter)
     return false;
 
-  if (options && options.onlyRemoveEmptyBlocks && splitter.textContent.trim() !== '')
+  if (shouldRemoveQuote(splitter, options))
     return
 
   splitter.parentNode.removeChild(splitter);
@@ -253,8 +256,9 @@ export function cutById(document: Document, options?: cutQuoteOption): boolean {
     if (!quote)
       continue;
 
-    if (options && options.onlyRemoveEmptyBlocks && quote.textContent.trim() !== '')
+    if (shouldRemoveQuote(quote, options))
       return
+
     found = true;
     quote.parentNode.removeChild(quote);
   }
@@ -279,56 +283,9 @@ export function cutBlockquote(document: Document, options?: cutQuoteOption): boo
   if (!quote)
     return false;
 
-  if (options && options.onlyRemoveEmptyBlocks && quote.textContent.trim() !== '')
+  if (shouldRemoveQuote(quote, options))
     return
 
   quote.parentNode.removeChild(quote);
   return true;
-};
-
-/**
- * Cuts div tag that wraps a block starting with "From:".
- *
- * @param {Document} document - The document to cut the element from.
- * @return {boolean} Whether a corresponding quote was found or not.
- */
-export function cutFromBlock(document: Document): boolean {
-  // Handle the case when "From:" block is enclosed in some tag.
-  const block1List = <Node[]>XPath.select(
-    "//*[starts-with(text(), \"From:\")]|" +
-    "//*[starts-with(text(), \"Date:\")]"
-  , document);
-
-  if (block1List.length > 0) {
-    let block1 = block1List[block1List.length - 1];
-
-    // Find the parent of the outermost div for this block.
-    let parentDiv: Node;
-    while (block1.parentNode) {
-      if (block1.nodeName === "div")
-        parentDiv = block1;
-
-      block1 = block1.parentNode;
-    }
-
-    // If none was found, stop.
-    if (!parentDiv)
-      return false;
-
-    // Otherwise, check if the parent div is at the root of the document.
-    const maybeBody = parentDiv.parentNode;
-
-    // If removing the enclosing div would remove all content,
-    // we should assume the quote is not enclosed in a tag.
-    const parentDivIsAllContent = maybeBody
-      && (maybeBody.nodeName === "body")
-      && maybeBody.childNodes.length === 1;
-
-    if (!parentDivIsAllContent) {
-      block1.parentNode.removeChild(block1);
-      return true;
-    }
-  }
-
-  return false;
 };

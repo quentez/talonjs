@@ -5,7 +5,6 @@ export class QuotationInfo {
   startTags: Set<number>;
   quoteStartDepth: number;
 
-
   constructor (startTags: Set<number>) {
     this.startTags = startTags;
     this.quoteStartDepth = NodeLimit;

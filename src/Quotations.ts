@@ -10,6 +10,7 @@ import {
   cutMicrosoftQuote,
   cutZimbraQuote,
   deleteQuotationTags,
+  cutQuoteOption
 } from './HtmlQuotations';
 import {
   CheckPointRegexp,
@@ -116,7 +117,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
       (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
     // Cut empty blockQuote markers
-    cutQuotation(xmlDocumentCopy, true);
+    cutQuotation(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true});
 
     // Serialize and return.
     return {
@@ -135,12 +136,12 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     return { body: messageBody, didFindQuote: false };
 }
 
-function cutQuotation(xmlDocument: Document, onlyRemoveEmptyBlocks?: boolean) {
-  return cutGmailQuote(xmlDocument, {onlyRemoveEmptyBlocks})
-  || cutZimbraQuote(xmlDocument, {onlyRemoveEmptyBlocks})
-  || cutBlockquote(xmlDocument, {onlyRemoveEmptyBlocks})
-  || cutMicrosoftQuote(xmlDocument, {onlyRemoveEmptyBlocks})
-  || cutById(xmlDocument, {onlyRemoveEmptyBlocks});
+function cutQuotation(xmlDocument: Document, options?: cutQuoteOption) {
+  return cutGmailQuote(xmlDocument, options)
+  || cutZimbraQuote(xmlDocument, options)
+  || cutBlockquote(xmlDocument, options)
+  || cutMicrosoftQuote(xmlDocument, options)
+  || cutById(xmlDocument, options);
 }
 
 interface extractQuoteOption {
