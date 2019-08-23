@@ -56,14 +56,15 @@ export function addCheckpoint(document: Document, element: Node, count: number =
  * @param {number} level - The recursion call depth.
  * @return {object} The updated count, and whether this tag was part of a quote or not.
  */
-export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], startTags:Set<number>, count: number = 0, level: number = 0, quoteStartDepth? : number): {
+export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], startTags:Set<number>, count: number = 0, level: number = 0, quoteStartDepth? : number, isBlockQuote?: boolean): {
   count: number,
   isTagInQuotation: boolean,
   quoteStartDepth: number
 } {
   let isTagInQuotation = true;
+  isBlockQuote = isBlockQuote? isBlockQuote : element.nodeName === 'blockquote';
   // If we processed all the node from the quotation line and we move back to the top of the tree stop removing data
-  if (quoteStartDepth && level < quoteStartDepth && startTags.size === 0)
+  if (quoteStartDepth && level < quoteStartDepth && startTags.size === 0 && !isBlockQuote)
     return {
       count,
       isTagInQuotation: false,
@@ -101,7 +102,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
         continue;
 
       let isChildTagInQuotation: boolean;
-      ({ count, isTagInQuotation: isChildTagInQuotation, quoteStartDepth } = deleteQuotationTags(document, node, quotationCheckpoints, startTags, count, level + 1, quoteStartDepth));
+      ({ count, isTagInQuotation: isChildTagInQuotation, quoteStartDepth } = deleteQuotationTags(document, node, quotationCheckpoints, startTags, count, level + 1, quoteStartDepth, isBlockQuote));
 
       if (!isChildTagInQuotation)
         continue;
