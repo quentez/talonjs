@@ -182,6 +182,7 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
     for (let index = firstDeletedLine; index <= lastDeletedLine; index++) {
       for (let checkpoint of lineCheckpoints[index])
         quotationCheckpoints[checkpoint] = true;
+
       if(markers[index] !== 's')
         isFirstSplitterGroup = false;
 
