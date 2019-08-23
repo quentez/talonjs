@@ -144,17 +144,20 @@ function cutQuotation(xmlDocument: Document, options?: cutQuoteOption) {
   || cutById(xmlDocument, options);
 }
 
-interface extractQuoteOption {
+interface ExtractQuoteOptions {
   ignoreBlockTags?: boolean
 }
 
-function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, options: extractQuoteOption): {
+
+interface ExtractQuoteResult {
   quotationCheckpoints?: Array<boolean>,
   quoteWasFound?: boolean,
   error?: string,
   splittersTags?: Array<number>
-} {
-  const messagePlainText = preprocess(elementToText(xmlDocument, options.ignoreBlockTags), "\n", ContentTypeTextPlain);
+}
+
+function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, {ignoreBlockTags}: ExtractQuoteOptions): ExtractQuoteResult {
+  const messagePlainText = preprocess(elementToText(xmlDocument, {ignoreBlockTags}), "\n", ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
 
   // Stop here if the message is too long.
@@ -173,6 +176,7 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
   lines = lines.map(line => line.replace(new RegExp(CheckPointRegexp.source, "g"), ""));
   // Use the plain text quotation algorithm.
   const markers = markMessageLines(lines);
+
   const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
