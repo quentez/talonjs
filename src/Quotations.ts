@@ -116,7 +116,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
       (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
     // Cut empty blockQuote markers
-    cutQuotatio(xmlDocumentCopy, true);
+    cutQuotation(xmlDocumentCopy, true);
 
     // Serialize and return.
     return {
@@ -125,7 +125,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     }
   }
    // Try and cut the quote of one of the known types.
-   const cutQuotations = cutQuotatio(xmlDocumentCopy);
+   const cutQuotations = cutQuotation(xmlDocumentCopy);
 
   // Otherwise, if we found a known quote earlier, return the content before.
   if (cutQuotations)
@@ -135,7 +135,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     return { body: messageBody, didFindQuote: false };
 }
 
-function cutQuotatio(xmlDocument: Document, onlyRemoveEmptyBlocks?: boolean) {
+function cutQuotation(xmlDocument: Document, onlyRemoveEmptyBlocks?: boolean) {
   return cutGmailQuote(xmlDocument, {onlyRemoveEmptyBlocks})
   || cutZimbraQuote(xmlDocument, {onlyRemoveEmptyBlocks})
   || cutBlockquote(xmlDocument, {onlyRemoveEmptyBlocks})
@@ -253,22 +253,15 @@ export function markMessageLines(lines: string[]): string {
   let index = 0;
   while (index < lines.length) {
     const line = lines[index];
-    // console.log(line);
     // Empty line.
     if (!line) {
       markers[index] = "e";
-      // console.log('e');
-
     // Line with a quotation marker.
     } else if (matchStart(line, QuotePatternRegexp)) {
       markers[index] = "m";
-      // console.log('m');
-
     // Forwarded message.
     } else if (matchStart(line, ForwardRegexp)) {
       markers[index] = "f";
-      // console.log('f');
-
     } else {
       // Try to find a splitter spread on several lines.
       const splitterMatch = isSplitter(lines.slice(index, index + SplitterMaxLines).join("\n"));
@@ -276,15 +269,11 @@ export function markMessageLines(lines: string[]): string {
       // If none was found, assume it's a line from the last message in the conversation.
       if (!splitterMatch) {
         markers[index] = "t";
-        // console.log('t');
-
       // Otherwise, append as many splitter markers, as lines in the splitter.
       } else {
         const splitterLines = splitLines(splitterMatch[0]);
-        for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++) {
+        for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++)
           markers[index + splitterIndex] = "s";
-          // console.log('s');
-        }
 
         // Skip as many lines as we just updated.
         index += splitterLines.length - 1;
