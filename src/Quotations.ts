@@ -176,13 +176,16 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
   const splittersTags = [];
+  let isFirstSplitterGroup = true;
   if (wereLinesDeleted)
     for (let index = firstDeletedLine; index <= lastDeletedLine; index++) {
       for (let checkpoint of lineCheckpoints[index])
         quotationCheckpoints[checkpoint] = true;
-      if(markers[index] === 's')
-        splittersTags.push(...lineCheckpoints[index]);
+      if(markers[index] !== 's')
+        isFirstSplitterGroup = false;
 
+      if(markers[index] === 's' && isFirstSplitterGroup)
+        splittersTags.push(...lineCheckpoints[index]);
     }
 
   return {quoteWasFound: wereLinesDeleted, quotationCheckpoints: quotationCheckpoints, splittersTags}
@@ -279,10 +282,6 @@ export function markMessageLines(lines: string[]): string {
       } else {
         const splitterLines = splitLines(splitterMatch[0]);
         for (let splitterIndex = 0; splitterIndex < splitterLines.length; splitterIndex++) {
-          // if(splitterLines[splitterIndex].trim() === '') {
-            // markers[index + splitterIndex] = "t";
-            // continue;
-          // }
           markers[index + splitterIndex] = "s";
         }
 
