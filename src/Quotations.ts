@@ -10,6 +10,7 @@ import {
   cutMicrosoftQuote,
   cutZimbraQuote,
   deleteQuotationTags,
+  cutQuoteOption
 } from './HtmlQuotations';
 import {
   CheckPointRegexp,
@@ -90,13 +91,6 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
   if (xmlDocument.lastChild && xmlDocument.lastChild.nodeValue)
     xmlDocument.removeChild(xmlDocument.lastChild);
 
-  // Try and cut the quote of one of the known types.
-  const cutQuotations = cutGmailQuote(xmlDocument)
-     || cutZimbraQuote(xmlDocument)
-     || cutBlockquote(xmlDocument)
-     || cutMicrosoftQuote(xmlDocument)
-     || cutById(xmlDocument);
-
   // Keep a copy of the original document around.
   const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
 
@@ -121,23 +115,38 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     if (xmlDocumentCopy.nodeType === NodeTypes.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)
       (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
 
+    // Cut empty blockQuote markers
+    cutQuotation(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true});
+
     // Serialize and return.
     return {
       body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true),
       didFindQuote: true
     }
   }
+   // Try and cut the quote of one of the known types.
+   const cutQuotations = cutQuotation(xmlDocumentCopy);
+
   // Otherwise, if we found a known quote earlier, return the content before.
-  else if (!extractQuoteHtml.quoteWasFound && cutQuotations)
+  if (cutQuotations)
     return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
   // Finally, if no quote was found, return the original HTML.
   else
     return { body: messageBody, didFindQuote: false };
 }
 
+function cutQuotation(xmlDocument: Document, options?: cutQuoteOption) {
+  return cutGmailQuote(xmlDocument, options)
+  || cutZimbraQuote(xmlDocument, options)
+  || cutBlockquote(xmlDocument, options)
+  || cutMicrosoftQuote(xmlDocument, options)
+  || cutById(xmlDocument, options);
+}
+
 interface ExtractQuoteOptions {
   ignoreBlockTags?: boolean
 }
+
 
 interface ExtractQuoteResult {
   quotationCheckpoints?: Array<boolean>,
@@ -239,7 +248,6 @@ export function markMessageLines(lines: string[]): string {
   let index = 0;
   while (index < lines.length) {
     const line = lines[index];
-
     // Empty line.
     if (!line) {
       markers[index] = "e";
@@ -266,7 +274,6 @@ export function markMessageLines(lines: string[]): string {
         index += splitterLines.length - 1;
       }
     }
-
     index++;
   }
 

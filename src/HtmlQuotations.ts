@@ -43,14 +43,18 @@ export function addCheckpoint(document: Document, element: Node, count: number =
   return count;
 };
 
+
 /**
  * Remove tags with quotation checkpoints from the provided HTML element and all its descendants.
+ * Only remove the child under the first quotation occurence
  *
  * @param {Document} document - The DOM document.
  * @param {Node} element - The HTML element to edit.
  * @param {boolean[]} quotationCheckpoints - The checkpoints for the tags to remove.
+ * @param {StartQuoteInfo} startQuoteInfo - Info of the quote we want to remove
  * @param {number} count - The number of scanned tags.
  * @param {number} level - The recursion call depth.
+ * @param {boolean} isBlockQuote - Is the current node part of a bloqkquote element
  * @return {object} The updated count, and whether this tag was part of a quote or not.
  */
 export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], count: number = 0, level: number = 0): {
@@ -58,7 +62,6 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   isTagInQuotation: boolean
 } {
   let isTagInQuotation = true;
-
   // Check if this element is a quotation tag.
   if (quotationCheckpoints[count]) {
     if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
@@ -112,19 +115,23 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
     isTagInQuotation
   };
 }
+export interface cutQuoteOption {
+  onlyRemoveEmptyBlocks?: boolean
+}
 
 /**
  * Cuts the outermost block element with the class "gmail_quote".
  *
  * @param {Document} document - The document to cut the element from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutGmailQuote(document: Document): boolean {
+export function cutGmailQuote(document: Document, options?: cutQuoteOption): boolean {
   // Find the first element that fits our criteria.
   const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
 
   // If no quote was found, or if that quote was a forward, return false.
-  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)))
+  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)) || shouldNotRemoveQuote(gmailQuote, options))
     return false;
 
   // Otherwise, remove the quote from the document and return.
@@ -132,13 +139,17 @@ export function cutGmailQuote(document: Document): boolean {
   return true;
 };
 
+function shouldNotRemoveQuote(node: Node, options?: cutQuoteOption) {
+  return options && options.onlyRemoveEmptyBlocks && node.textContent.trim() !== '';
+}
 /**
  * Cuts the Outlook splitter block and all the following block.
  *
  * @param {Document} document - The document to cut the elements from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutMicrosoftQuote(document: Document): boolean {
+export function cutMicrosoftQuote(document: Document, options?: cutQuoteOption): boolean {
   let splitter = <Node>XPath.select(
     // Outlook 2007, 2010.
     "//*[local-name(.)='div' and @style='border:none;" +
@@ -177,7 +188,7 @@ export function cutMicrosoftQuote(document: Document): boolean {
   }
 
   // If no splitter was found at this point, stop.
-  if (!splitter)
+  if (!splitter|| shouldNotRemoveQuote(splitter, options))
     return false;
 
   // Remove the splitter, and everything after it.
@@ -192,11 +203,12 @@ export function cutMicrosoftQuote(document: Document): boolean {
  * Cuts a Zimbra quote block.
  *
  * @param {Document} document - The document to cut the element from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutZimbraQuote(document: Document): boolean {
+export function cutZimbraQuote(document: Document, options?: cutQuoteOption): boolean {
   const splitter = <Node>XPath.select("//*[local-name(.)='hr' and @data-marker=\"__DIVIDER__\"]", document, true);
-  if (!splitter)
+  if (!splitter || shouldNotRemoveQuote(splitter, options))
     return false;
 
   splitter.parentNode.removeChild(splitter);
@@ -207,15 +219,16 @@ export function cutZimbraQuote(document: Document): boolean {
  * Cuts all of the outermost block elements with known quote ids.
  *
  * @param {Document} document - The document to cut the element from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutById(document: Document): boolean {
+export function cutById(document: Document, options?: cutQuoteOption): boolean {
   let found = false;
 
   // For each known Quote Id, remove any corresponding element.
   for (const quoteId of QuoteIds) {
     const quote = <Node>XPath.select(`//*[@id="${quoteId}"]`, document, true);
-    if (!quote)
+    if (!quote || shouldNotRemoveQuote(quote, options))
       continue;
 
     found = true;
@@ -230,65 +243,19 @@ export function cutById(document: Document): boolean {
  * Cust the last non-nested blockquote with wrapping elements.
  *
  * @param {Document} document - The document to cut the element from.
+ * @param {cutQuoteOption} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutBlockquote(document: Document): boolean {
+export function cutBlockquote(document: Document, options?: cutQuoteOption): boolean {
   const quote = <Node>XPath.select(
     "(.//*[local-name(.)='blockquote'])" +
     "[not(@class=\"gmail_quote\") and not(ancestor::blockquote)]" +
     "[last()]"
   , document, true);
 
-  if (!quote)
+  if (!quote || shouldNotRemoveQuote(quote, options))
     return false;
 
   quote.parentNode.removeChild(quote);
   return true;
-};
-
-/**
- * Cuts div tag that wraps a block starting with "From:".
- *
- * @param {Document} document - The document to cut the element from.
- * @return {boolean} Whether a corresponding quote was found or not.
- */
-export function cutFromBlock(document: Document): boolean {
-  // Handle the case when "From:" block is enclosed in some tag.
-  const block1List = <Node[]>XPath.select(
-    "//*[starts-with(text(), \"From:\")]|" +
-    "//*[starts-with(text(), \"Date:\")]"
-  , document);
-
-  if (block1List.length > 0) {
-    let block1 = block1List[block1List.length - 1];
-
-    // Find the parent of the outermost div for this block.
-    let parentDiv: Node;
-    while (block1.parentNode) {
-      if (block1.nodeName === "div")
-        parentDiv = block1;
-
-      block1 = block1.parentNode;
-    }
-
-    // If none was found, stop.
-    if (!parentDiv)
-      return false;
-
-    // Otherwise, check if the parent div is at the root of the document.
-    const maybeBody = parentDiv.parentNode;
-
-    // If removing the enclosing div would remove all content,
-    // we should assume the quote is not enclosed in a tag.
-    const parentDivIsAllContent = maybeBody
-      && (maybeBody.nodeName === "body")
-      && maybeBody.childNodes.length === 1;
-
-    if (!parentDivIsAllContent) {
-      block1.parentNode.removeChild(block1);
-      return true;
-    }
-  }
-
-  return false;
 };
