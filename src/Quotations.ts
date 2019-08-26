@@ -147,7 +147,6 @@ interface ExtractQuoteOptions {
   ignoreBlockTags?: boolean
 }
 
-
 interface ExtractQuoteResult {
   quotationCheckpoints?: Array<boolean>,
   quoteWasFound?: boolean,

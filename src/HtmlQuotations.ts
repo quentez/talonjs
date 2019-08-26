@@ -43,18 +43,14 @@ export function addCheckpoint(document: Document, element: Node, count: number =
   return count;
 };
 
-
 /**
  * Remove tags with quotation checkpoints from the provided HTML element and all its descendants.
- * Only remove the child under the first quotation occurence
  *
  * @param {Document} document - The DOM document.
  * @param {Node} element - The HTML element to edit.
  * @param {boolean[]} quotationCheckpoints - The checkpoints for the tags to remove.
- * @param {StartQuoteInfo} startQuoteInfo - Info of the quote we want to remove
  * @param {number} count - The number of scanned tags.
  * @param {number} level - The recursion call depth.
- * @param {boolean} isBlockQuote - Is the current node part of a bloqkquote element
  * @return {object} The updated count, and whether this tag was part of a quote or not.
  */
 export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], count: number = 0, level: number = 0): {
