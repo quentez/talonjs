@@ -317,8 +317,6 @@ describe("Html Quotations", function () {
                 return nextFile(err2);
 
               const replyHtml = quotations.extractFromHtml(html).body;
-              console.log(file);
-              console.log(replyHtml);
               assert.equal(
                 removeWhitespace(htmlStripped),
                 removeWhitespace(replyHtml));
