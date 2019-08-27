@@ -248,7 +248,7 @@ export function markMessageLines(lines: string[]): string {
   while (index < lines.length) {
     const line = lines[index];
     // Empty line.
-    if (!line) {
+    if (!line || line.trim() === '') {
       markers[index] = "e";
     // Line with a quotation marker.
     } else if (matchStart(line, QuotePatternRegexp)) {
@@ -325,7 +325,7 @@ export function processMarkedLines(lines: string[], markers: string): {
   }
 
   // Cut out text lines coming after the splitter if there are no markers there.
-  let quotation: any = markers.match("(se*)+((t|f)+e*)+");
+  let quotation: any = markers.match("(e*)(se*)+((t|f)+e*)+");
   if (quotation) {
     result.wereLinesDeleted = true;
     result.firstDeletedLine = quotation.index;
