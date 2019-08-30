@@ -12,13 +12,13 @@
   "author": "FrontApp Inc.",
   "license": "ISC",
   "devDependencies": {
-    "@types/cheerio": "0.22.11",
+    "@types/cheerio": "0.22.13",
     "chai": "4.2.0",
     "front-async": "0.9.2-1",
     "mailparser": "0.6.1",
-    "mocha": "6.1.4",
+    "mocha": "6.2.0",
     "retyped-xpath-tsd-ambient": "0.0.7-0",
-    "typescript": "3.4.5"
+    "typescript": "3.6.2"
   },
   "dependencies": {
     "cheerio": "0.22.0",
