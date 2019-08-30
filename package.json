@@ -11,6 +11,10 @@
   },
   "author": "FrontApp Inc.",
   "license": "ISC",
+  "resolutions": {
+    "lodash": "4.17.15",
+    "lodash.merge": "4.6.2"
+  },
   "devDependencies": {
     "@types/cheerio": "0.22.13",
     "chai": "4.2.0",
