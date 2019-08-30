@@ -10,7 +10,7 @@ import {
   cutMicrosoftQuote,
   cutZimbraQuote,
   deleteQuotationTags,
-  cutQuoteOption
+  CutQuoteOption
 } from './HtmlQuotations';
 import {
   CheckPointRegexp,
@@ -127,7 +127,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
    // Try and cut the quote of one of the known types.
    const cutQuotations = cutQuotation(xmlDocumentCopy);
 
-  // Otherwise, if we found a known quote earlier, return the content before.
+  //If we found a known quote earlier, return the content before.
   if (cutQuotations)
     return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
   // Finally, if no quote was found, return the original HTML.
@@ -135,7 +135,7 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
     return { body: messageBody, didFindQuote: false };
 }
 
-function cutQuotation(xmlDocument: Document, options?: cutQuoteOption) {
+function cutQuotation(xmlDocument: Document, options?: CutQuoteOption) {
   return cutGmailQuote(xmlDocument, options)
   || cutZimbraQuote(xmlDocument, options)
   || cutBlockquote(xmlDocument, options)
@@ -247,6 +247,7 @@ export function markMessageLines(lines: string[]): string {
   let index = 0;
   while (index < lines.length) {
     const line = lines[index];
+
     // Empty line.
     if (!line) {
       markers[index] = "e";
