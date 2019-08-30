@@ -409,6 +409,30 @@ describe("Html Quotations", function () {
       });
     });
 
+    it("should correctly parse email with gmail quote in reply.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_quote.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+         // Extract the quote.
+        const replyHtml = quotations.extractFromHtml(html).body;
+        assert.include(replyHtml, "Too often, how we work with people outside");
+        return done();
+      });
+    });
+
+       it("should correctly parse email with signature in reply.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_with_signature.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+         // Extract the quote.
+        const replyHtml = quotations.extractFromHtml(html).body;
+        assert.notInclude(replyHtml, "Leo Vck");
+        return done();
+      });
+    });
+
     it("should test emails that used to crash extractFromHtml.", function (done) {
       // List the fixtures.
       const htmlRepliesPath = path.join("tests", "fixtures", "front", "crashers");
