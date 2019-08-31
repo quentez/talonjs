@@ -10,7 +10,7 @@ import {
   cutMicrosoftQuote,
   cutZimbraQuote,
   deleteQuotationTags,
-  CutQuoteOption
+  CutQuoteOptions
 } from './HtmlQuotations';
 import {
   CheckPointRegexp,
@@ -124,18 +124,19 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
       didFindQuote: true
     }
   }
-   // Try and cut the quote of one of the known types.
-   const cutQuotations = cutQuotation(xmlDocumentCopy);
 
-  //If we found a known quote earlier, return the content before.
+  // Try and cut the quote of one of the known types.
+  const cutQuotations = cutQuotation(xmlDocumentCopy);
+
+  // If one was found, return the content before.
   if (cutQuotations)
     return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
-  // Finally, if no quote was found, return the original HTML.
-  else
-    return { body: messageBody, didFindQuote: false };
+
+  // Otherwise, if no quote was found, return the original HTML.
+  return { body: messageBody, didFindQuote: false };
 }
 
-function cutQuotation(xmlDocument: Document, options?: CutQuoteOption) {
+function cutQuotation(xmlDocument: Document, options?: CutQuoteOptions) {
   return cutGmailQuote(xmlDocument, options)
   || cutZimbraQuote(xmlDocument, options)
   || cutBlockquote(xmlDocument, options)
@@ -274,6 +275,7 @@ export function markMessageLines(lines: string[]): string {
         index += splitterLines.length - 1;
       }
     }
+
     index++;
   }
 
