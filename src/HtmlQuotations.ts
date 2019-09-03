@@ -93,7 +93,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
     }
 
   // If needed, clear the following text node.
-  if (quotationCheckpoints[count]) {
+  if (quotationCheckpoints[count] && !preserveTable) {
     if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
       element.parentNode.replaceChild(document.createTextNode(""), element.nextSibling);
   } else {
@@ -102,7 +102,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   count++;
 
   // If this tag wasn't part of a quote, remove its children who were.
-  if (!isTagInQuotation)
+  if (!isTagInQuotation && !preserveTable)
     for (const node of quotationChildren)
       node.parentNode.removeChild(node);
 
