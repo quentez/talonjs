@@ -31,7 +31,7 @@ export function addCheckpoint(document: Document, element: Node, count: number =
       count = addCheckpoint(document, node, count, level + 1);
     }
 
-    // Also update the following text node, if any.
+  // Also update the following text node, if any.
   if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
     element.parentNode.replaceChild(document.createTextNode(`${element.nextSibling.nodeValue || ""}${CheckpointPrefix}${count}${CheckpointSuffix}`), element.nextSibling);
   else if (element.parentNode)
@@ -111,9 +111,6 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
     count,
     isTagInQuotation
   };
-}
-export interface cutQuoteOption {
-  onlyRemoveEmptyBlocks?: boolean
 }
 
 export interface CutQuoteOptions {

@@ -304,7 +304,7 @@ describe("Html Quotations", function () {
         // Iterate on the files we found.
         return async.eachSeries(files, (file, nextFile) => {
           // If this is one of the stripped files, skip.
-          if (file.indexOf("stripped") >= 0)Psearch
+          if (file.indexOf("stripped") >= 0)
             return nextFile();
 
           // Read the file.
