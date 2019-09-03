@@ -92,7 +92,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
       quotationChildren.push(node);
     }
 
-    // If needed, clear the following text node.
+  // If needed, clear the following text node.
   if (quotationCheckpoints[count]) {
     if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
       element.parentNode.replaceChild(document.createTextNode(""), element.nextSibling);
