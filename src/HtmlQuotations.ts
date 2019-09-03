@@ -116,14 +116,22 @@ export interface cutQuoteOption {
   onlyRemoveEmptyBlocks?: boolean
 }
 
+export interface CutQuoteOptions {
+  onlyRemoveEmptyBlocks?: boolean
+}
+
+function shouldNotRemoveQuote(node: Node, options?: CutQuoteOptions): Boolean {
+  return Boolean(options && options.onlyRemoveEmptyBlocks && node.textContent.trim() !== '');
+}
+
 /**
  * Cuts the outermost block element with the class "gmail_quote".
  *
  * @param {Document} document - The document to cut the element from.
- * @param {cutQuoteOption} options - Extra options.
+ * @param {CutQuoteOptions} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutGmailQuote(document: Document, options?: cutQuoteOption): boolean {
+export function cutGmailQuote(document: Document, options?: CutQuoteOptions): boolean {
   // Find the first element that fits our criteria.
   const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
 
@@ -136,17 +144,14 @@ export function cutGmailQuote(document: Document, options?: cutQuoteOption): boo
   return true;
 };
 
-function shouldNotRemoveQuote(node: Node, options?: cutQuoteOption) {
-  return options && options.onlyRemoveEmptyBlocks && node.textContent.trim() !== '';
-}
 /**
  * Cuts the Outlook splitter block and all the following block.
  *
  * @param {Document} document - The document to cut the elements from.
- * @param {cutQuoteOption} options - Extra options.
+ * @param {CutQuoteOptions} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutMicrosoftQuote(document: Document, options?: cutQuoteOption): boolean {
+export function cutMicrosoftQuote(document: Document, options?: CutQuoteOptions): boolean {
   let splitter = <Node>XPath.select(
     // Outlook 2007, 2010.
     "//*[local-name(.)='div' and @style='border:none;" +
@@ -200,10 +205,10 @@ export function cutMicrosoftQuote(document: Document, options?: cutQuoteOption):
  * Cuts a Zimbra quote block.
  *
  * @param {Document} document - The document to cut the element from.
- * @param {cutQuoteOption} options - Extra options.
+ * @param {CutQuoteOptions} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutZimbraQuote(document: Document, options?: cutQuoteOption): boolean {
+export function cutZimbraQuote(document: Document, options?: CutQuoteOptions): boolean {
   const splitter = <Node>XPath.select("//*[local-name(.)='hr' and @data-marker=\"__DIVIDER__\"]", document, true);
   if (!splitter || shouldNotRemoveQuote(splitter, options))
     return false;
@@ -216,10 +221,10 @@ export function cutZimbraQuote(document: Document, options?: cutQuoteOption): bo
  * Cuts all of the outermost block elements with known quote ids.
  *
  * @param {Document} document - The document to cut the element from.
- * @param {cutQuoteOption} options - Extra options.
+ * @param {CutQuoteOptions} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutById(document: Document, options?: cutQuoteOption): boolean {
+export function cutById(document: Document, options?: CutQuoteOptions): boolean {
   let found = false;
 
   // For each known Quote Id, remove any corresponding element.
@@ -240,10 +245,10 @@ export function cutById(document: Document, options?: cutQuoteOption): boolean {
  * Cust the last non-nested blockquote with wrapping elements.
  *
  * @param {Document} document - The document to cut the element from.
- * @param {cutQuoteOption} options - Extra options.
+ * @param {CutQuoteOptions} options - Extra options.
  * @return {boolean} Whether a corresponding quote was found or not.
  */
-export function cutBlockquote(document: Document, options?: cutQuoteOption): boolean {
+export function cutBlockquote(document: Document, options?: CutQuoteOptions): boolean {
   const quote = <Node>XPath.select(
     "(.//*[local-name(.)='blockquote'])" +
     "[not(@class=\"gmail_quote\") and not(ancestor::blockquote)]" +
