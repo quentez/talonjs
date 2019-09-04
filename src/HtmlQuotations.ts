@@ -9,7 +9,6 @@ export interface CheckpointOptions {
   nodeLimit: number
 }
 
-
 /**
  * Add checkpoints to an HTML element and all its descendants.
  *
