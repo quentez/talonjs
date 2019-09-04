@@ -1,7 +1,7 @@
 import * as Cheerio from 'cheerio';
 import * as XmlDom from 'xmldom';
 
-import { ContentType, ContentTypeTextPlain, SplitterMaxLines, NodeTypes, MaxLinesCount } from './Constants';
+import { ContentType, ContentTypeTextPlain, SplitterMaxLines, NodeTypes } from './Constants';
 import {
   addCheckpoint,
   cutBlockquote,
