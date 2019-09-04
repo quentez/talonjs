@@ -1,8 +1,14 @@
 import * as XPath from 'xpath';
 
-import { CheckpointPrefix, CheckpointSuffix, NodeLimit, QuoteIds, NodeTypes } from './Constants';
+import { CheckpointPrefix, CheckpointSuffix, QuoteIds, NodeTypes } from './Constants';
 import { ForwardRegexp } from './Regexp';
 import { matchStart } from './Utils';
+
+
+export interface CheckpointOptions {
+  nodeLimit: number
+}
+
 
 /**
  * Add checkpoints to an HTML element and all its descendants.
@@ -13,7 +19,7 @@ import { matchStart } from './Utils';
  * @param {number} level - The recursion call depth.
  * @return {number} The total number of checkpoints in the document.
  */
-export function addCheckpoint(document: Document, element: Node, count: number = 0, level: number = 0): number {
+export function addCheckpoint(document: Document, element: Node, {nodeLimit}: CheckpointOptions, count: number = 0, level: number = 0): number {
   // Update the text for this element.
   if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
     element.replaceChild(document.createTextNode(`${element.firstChild.nodeValue || ""}${CheckpointPrefix}${count}${CheckpointSuffix}`), element.firstChild);
@@ -22,13 +28,13 @@ export function addCheckpoint(document: Document, element: Node, count: number =
   count++;
 
   // Process recursively.
-  if (count < NodeLimit)
-    for (let index = 0; index < element.childNodes.length && count < NodeLimit; index++) {
+  if (count < nodeLimit)
+    for (let index = 0; index < element.childNodes.length && count < nodeLimit; index++) {
       const node = element.childNodes.item(index);
       if (node.nodeType !== 1)
         continue;
 
-      count = addCheckpoint(document, node, count, level + 1);
+      count = addCheckpoint(document, node, {nodeLimit}, count, level + 1);
     }
 
   // Also update the following text node, if any.
@@ -53,7 +59,7 @@ export function addCheckpoint(document: Document, element: Node, count: number =
  * @param {number} level - The recursion call depth.
  * @return {object} The updated count, and whether this tag was part of a quote or not.
  */
-export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], count: number = 0, level: number = 0): {
+export function deleteQuotationTags(document: Document, element: Node, quotationCheckpoints: boolean[], {nodeLimit}: CheckpointOptions, count: number = 0, level: number = 0): {
   count: number,
   isTagInQuotation: boolean
 } {
@@ -76,14 +82,14 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   // Process recursively.
   const quotationChildren = new Array<Node>(); // Collection of children in quotation.
 
-  if (count < NodeLimit && !preserveTable)
-    for (let index = 0; index < element.childNodes.length && count < NodeLimit; index++) {
+  if (count < nodeLimit && !preserveTable)
+    for (let index = 0; index < element.childNodes.length && count < nodeLimit; index++) {
       const node = element.childNodes.item(index);
       if (node.nodeType !== NodeTypes.ELEMENT_NODE)
         continue;
 
       let isChildTagInQuotation: boolean;
-      ({ count, isTagInQuotation: isChildTagInQuotation } = deleteQuotationTags(document, node, quotationCheckpoints, count, level + 1));
+      ({ count, isTagInQuotation: isChildTagInQuotation } = deleteQuotationTags(document, node, quotationCheckpoints, {nodeLimit}, count, level + 1));
 
       if (!isChildTagInQuotation)
         continue;
