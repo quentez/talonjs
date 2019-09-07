@@ -1,7 +1,7 @@
 import * as Cheerio from 'cheerio';
 import * as XmlDom from 'xmldom';
 
-import { ContentType, ContentTypeTextPlain, SplitterMaxLines, NodeTypes } from './Constants';
+import { ContentType, ContentTypeTextPlain, DefaultMaxLinesCount, DefaultNodeLimit, SplitterMaxLines, NodeTypes } from './Constants';
 import {
   addCheckpoint,
   cutBlockquote,
@@ -33,6 +33,10 @@ const xmlDomSerializer = new XmlDom.XMLSerializer();
  * Module interface.
  */
 
+interface ExtractFromPlainOptions {
+  maxLinesCount?: number
+}
+
 interface ExtractFromPlainResult {
   body: string,
   didFindQuote: boolean
@@ -44,9 +48,14 @@ interface ExtractFromPlainResult {
  * @param {string} messageBody - The plain text body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromPlain(messageBody: string, maxLinesCount : number = 4000): ExtractFromPlainResult {
+export function extractFromPlain(messageBody: string, options?: ExtractFromPlainOptions): ExtractFromPlainResult {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
+
+  const { maxLinesCount } = {
+    maxLinesCount: DefaultMaxLinesCount,
+    ...options
+  }
 
   // Prepare the provided message body.
   const delimiter = findDelimiter(messageBody);
@@ -65,6 +74,11 @@ export function extractFromPlain(messageBody: string, maxLinesCount : number = 4
   return { body: messageBody, didFindQuote: wereLinesDeleted };
 }
 
+interface ExtractFromHtmlOptions {
+  nodeLimit?: number;
+  maxLinesCount?: number;
+}
+
 interface ExtractFromHtmlResult extends ExtractFromPlainResult {
   isTooLong?: boolean
 }
@@ -75,9 +89,15 @@ interface ExtractFromHtmlResult extends ExtractFromPlainResult {
  * @param {string} messageBody - The html body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromHtml(messageBody: string, nodeLimit: number = 4000, maxLinesCount : number = 4000): ExtractFromHtmlResult {
+export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOptions): ExtractFromHtmlResult {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
+
+  const { nodeLimit, maxLinesCount } = {
+    nodeLimit: DefaultNodeLimit,
+    maxLinesCount: DefaultMaxLinesCount,
+    ...options
+  }
 
   // Remove all newline characters from the provided body.
   messageBody = messageBody.replace(/\r\n/g, " ").replace(/\n/g, " ");
@@ -146,7 +166,7 @@ function cutQuotation(xmlDocument: Document, options?: CutQuoteOptions) {
 
 interface ExtractQuoteOptions {
   ignoreBlockTags?: boolean,
-  maxLinesCount: number;
+  maxLinesCount?: number;
 }
 
 interface ExtractQuoteResult {
@@ -155,7 +175,13 @@ interface ExtractQuoteResult {
   error?: string
 }
 
-function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, {ignoreBlockTags, maxLinesCount}: ExtractQuoteOptions): ExtractQuoteResult {
+function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, options?: ExtractQuoteOptions): ExtractQuoteResult {
+  const { ignoreBlockTags, maxLinesCount } = {
+    ignoreBlockTags: false,
+    maxLinesCount: DefaultMaxLinesCount,
+    ...options
+  }
+
   const messagePlainText = preprocess(elementToText(xmlDocument, {ignoreBlockTags}), "\n", ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
 
