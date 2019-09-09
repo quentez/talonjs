@@ -1,7 +1,7 @@
 import * as Cheerio from 'cheerio';
 import * as XmlDom from 'xmldom';
 
-import { ContentType, ContentTypeTextPlain, MaxLinesCount, NodeLimit, SplitterMaxLines, NodeTypes } from './Constants';
+import { ContentType, ContentTypeTextPlain, DefaultMaxLinesCount, DefaultNodeLimit, SplitterMaxLines, NodeTypes } from './Constants';
 import {
   addCheckpoint,
   cutBlockquote,
@@ -33,6 +33,10 @@ const xmlDomSerializer = new XmlDom.XMLSerializer();
  * Module interface.
  */
 
+interface ExtractFromPlainOptions {
+  maxLinesCount?: number
+}
+
 interface ExtractFromPlainResult {
   body: string,
   didFindQuote: boolean
@@ -44,16 +48,21 @@ interface ExtractFromPlainResult {
  * @param {string} messageBody - The plain text body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromPlain(messageBody: string): ExtractFromPlainResult {
+export function extractFromPlain(messageBody: string, options?: ExtractFromPlainOptions): ExtractFromPlainResult {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
+
+  const { maxLinesCount } = {
+    maxLinesCount: DefaultMaxLinesCount,
+    ...options
+  }
 
   // Prepare the provided message body.
   const delimiter = findDelimiter(messageBody);
   messageBody = preprocess(messageBody, delimiter);
 
   // Only take the X first lines.
-  const lines = splitLines(messageBody).slice(0, MaxLinesCount);
+  const lines = splitLines(messageBody).slice(0, maxLinesCount);
   const markers = markMessageLines(lines);
   const { wereLinesDeleted, lastMessageLines } = processMarkedLines(lines, markers);
 
@@ -63,6 +72,11 @@ export function extractFromPlain(messageBody: string): ExtractFromPlainResult {
 
   // Return the extracted message.
   return { body: messageBody, didFindQuote: wereLinesDeleted };
+}
+
+interface ExtractFromHtmlOptions {
+  nodeLimit?: number;
+  maxLinesCount?: number;
 }
 
 interface ExtractFromHtmlResult extends ExtractFromPlainResult {
@@ -75,9 +89,15 @@ interface ExtractFromHtmlResult extends ExtractFromPlainResult {
  * @param {string} messageBody - The html body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
+export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOptions): ExtractFromHtmlResult {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
+
+  const { nodeLimit, maxLinesCount } = {
+    nodeLimit: DefaultNodeLimit,
+    maxLinesCount: DefaultMaxLinesCount,
+    ...options
+  }
 
   // Remove all newline characters from the provided body.
   messageBody = messageBody.replace(/\r\n/g, " ").replace(/\n/g, " ");
@@ -95,21 +115,21 @@ export function extractFromHtml(messageBody: string): ExtractFromHtmlResult {
   const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
 
   // Add the checkpoints to the HTML tree.
-  const numberOfCheckpoints = addCheckpoint(xmlDocument, xmlDocument);
-  if (numberOfCheckpoints >= NodeLimit)
+  const numberOfCheckpoints = addCheckpoint(xmlDocument, xmlDocument, {nodeLimit});
+  if (numberOfCheckpoints >= nodeLimit)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
-  let extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, {ignoreBlockTags: false});
+  let extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, {ignoreBlockTags: false, maxLinesCount});
   if (extractQuoteHtml.error)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
   // Make sure we did not miss a quote due to some parsing error
   if (!extractQuoteHtml.quoteWasFound)
-    extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, {ignoreBlockTags: true});
+    extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, {ignoreBlockTags: true, maxLinesCount});
 
   if (extractQuoteHtml.quoteWasFound) {
     // Remove the tags that we marked as quotation from the HTML.
-    deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints);
+    deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints, {nodeLimit});
 
     // Fix quirk in XmlDom.
     if (xmlDocumentCopy.nodeType === NodeTypes.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)
@@ -145,7 +165,8 @@ function cutQuotation(xmlDocument: Document, options?: CutQuoteOptions) {
 }
 
 interface ExtractQuoteOptions {
-  ignoreBlockTags?: boolean
+  ignoreBlockTags?: boolean,
+  maxLinesCount?: number;
 }
 
 interface ExtractQuoteResult {
@@ -154,12 +175,18 @@ interface ExtractQuoteResult {
   error?: string
 }
 
-function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, {ignoreBlockTags}: ExtractQuoteOptions): ExtractQuoteResult {
+function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Document, options?: ExtractQuoteOptions): ExtractQuoteResult {
+  const { ignoreBlockTags, maxLinesCount } = {
+    ignoreBlockTags: false,
+    maxLinesCount: DefaultMaxLinesCount,
+    ...options
+  }
+
   const messagePlainText = preprocess(elementToText(xmlDocument, {ignoreBlockTags}), "\n", ContentTypeTextPlain);
   let lines = splitLines(messagePlainText);
 
   // Stop here if the message is too long.
-  if (lines.length > MaxLinesCount)
+  if (lines.length > maxLinesCount)
     return { error: 'Message too big' };
 
   // Collect the checkpoints on each line.
