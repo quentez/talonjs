@@ -110,12 +110,12 @@ export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOp
   if (result.didFindQuote && !result.isTooLong)
     return result;
 
-
   let cutQuotations = cutQuotation(xmlDocument);
+  // If message is too big try to rely on gmail quote to find checkpoint
   if (result.isTooLong) {
-  const noQuotationResult = extractQuotationFromCheckpoint(xmlDocument, messageBody, options);
-    if (noQuotationResult.didFindQuote && !noQuotationResult.isTooLong)
-      return noQuotationResult;
+  const cutQuotationResult = extractQuotationFromCheckpoint(xmlDocument, messageBody, options);
+    if (cutQuotationResult.didFindQuote && !cutQuotationResult.isTooLong)
+      return cutQuotationResult;
   }
 
   // If one was found, return the content before.
@@ -137,7 +137,7 @@ function extractQuotationFromCheckpoint(xmlDocument: Document, messageBody: stri
   let numberOfCheckpoints = addCheckpoint(xmlDocumentCopy, xmlDocumentCopy, {nodeLimit});
 
   if (numberOfCheckpoints >= nodeLimit)
-      return { body: messageBody, didFindQuote: false, isTooLong: true };
+    return { body: messageBody, didFindQuote: false, isTooLong: true };
 
   let extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocumentCopy, {ignoreBlockTags: false, maxLinesCount});
   if (extractQuoteHtml.error)
@@ -167,7 +167,7 @@ function extractQuotationFromCheckpoint(xmlDocument: Document, messageBody: stri
   }
 }
 
-function cutQuotation(xmlDocument: Document, options?: CutQuoteOptions) : boolean{
+function cutQuotation(xmlDocument: Document, options?: CutQuoteOptions) {
   return cutGmailQuote(xmlDocument, options)
   || cutZimbraQuote(xmlDocument, options)
   || cutBlockquote(xmlDocument, options)
