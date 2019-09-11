@@ -93,12 +93,6 @@ export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOp
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
 
-  const { nodeLimit, maxLinesCount } = {
-    nodeLimit: DefaultNodeLimit,
-    maxLinesCount: DefaultMaxLinesCount,
-    ...options
-  }
-
   // Remove all newline characters from the provided body.
   messageBody = messageBody.replace(/\r\n/g, " ").replace(/\n/g, " ");
   messageBody = normalizeHtmlDocument(messageBody);
@@ -111,52 +105,69 @@ export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOp
   if (xmlDocument.lastChild && xmlDocument.lastChild.nodeValue)
     xmlDocument.removeChild(xmlDocument.lastChild);
 
-  // Keep a copy of the original document around.
-  const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
-
   // Add the checkpoints to the HTML tree.
-  const numberOfCheckpoints = addCheckpoint(xmlDocument, xmlDocument, {nodeLimit});
-  if (numberOfCheckpoints >= nodeLimit)
-    return { body: messageBody, didFindQuote: false, isTooLong: true };
+  const result = extractQuotationFromCheckpoint(xmlDocument, messageBody, options);
+  if (result.didFindQuote && !result.isTooLong)
+    return result;
 
-  let extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, {ignoreBlockTags: false, maxLinesCount});
-  if (extractQuoteHtml.error)
-    return { body: messageBody, didFindQuote: false, isTooLong: true };
 
-  // Make sure we did not miss a quote due to some parsing error
-  if (!extractQuoteHtml.quoteWasFound)
-    extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocument, {ignoreBlockTags: true, maxLinesCount});
-
-  if (extractQuoteHtml.quoteWasFound) {
-    // Remove the tags that we marked as quotation from the HTML.
-    deleteQuotationTags(xmlDocument, xmlDocumentCopy, extractQuoteHtml.quotationCheckpoints, {nodeLimit});
-
-    // Fix quirk in XmlDom.
-    if (xmlDocumentCopy.nodeType === NodeTypes.DOCUMENT_NODE && !xmlDocumentCopy.documentElement)
-      (xmlDocumentCopy.documentElement as any) = <HTMLElement>xmlDocumentCopy.childNodes[0];
-
-    // Cut empty blockQuote markers
-    cutQuotation(xmlDocumentCopy, {onlyRemoveEmptyBlocks: true});
-
-    // Serialize and return.
-    return {
-      body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true),
-      didFindQuote: true
-    }
+  let cutQuotations = cutQuotation(xmlDocument);
+  if (result.isTooLong) {
+  const noQuotationResult = extractQuotationFromCheckpoint(xmlDocument, messageBody, options);
+    if (noQuotationResult.didFindQuote && !noQuotationResult.isTooLong)
+      return noQuotationResult;
   }
-
-  // Try and cut the quote of one of the known types.
-  const cutQuotations = cutQuotation(xmlDocumentCopy);
 
   // If one was found, return the content before.
   if (cutQuotations)
-    return { body: xmlDomSerializer.serializeToString(xmlDocumentCopy, true), didFindQuote: true };
+    return { body: xmlDomSerializer.serializeToString(xmlDocument, true), didFindQuote: true };
 
   // Otherwise, if no quote was found, return the original HTML.
   return { body: messageBody, didFindQuote: false };
 }
 
-function cutQuotation(xmlDocument: Document, options?: CutQuoteOptions) {
+function extractQuotationFromCheckpoint(xmlDocument: Document, messageBody: string, options?: ExtractFromHtmlOptions): ExtractFromHtmlResult {
+  // Use copy of document to check for checkpoint
+  const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
+  const { nodeLimit, maxLinesCount } = {
+    nodeLimit: DefaultNodeLimit,
+    maxLinesCount: DefaultMaxLinesCount,
+    ...options
+  }
+  let numberOfCheckpoints = addCheckpoint(xmlDocumentCopy, xmlDocumentCopy, {nodeLimit});
+
+  if (numberOfCheckpoints >= nodeLimit)
+      return { body: messageBody, didFindQuote: false, isTooLong: true };
+
+  let extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocumentCopy, {ignoreBlockTags: false, maxLinesCount});
+  if (extractQuoteHtml.error)
+    return { body: messageBody, didFindQuote: false, isTooLong: true };
+
+  // Make sure we did not miss a quote due to some parsing error
+  if (!extractQuoteHtml.quoteWasFound)
+    extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocumentCopy, {ignoreBlockTags: true, maxLinesCount});
+
+  if (!extractQuoteHtml.quoteWasFound)
+    return {body: null, didFindQuote: false, isTooLong: false};
+
+  // Remove the tags that we marked as quotation from the HTML.
+  deleteQuotationTags(xmlDocumentCopy, xmlDocument, extractQuoteHtml.quotationCheckpoints, {nodeLimit});
+
+  // Fix quirk in XmlDom.
+  if (xmlDocument.nodeType === NodeTypes.DOCUMENT_NODE && !xmlDocument.documentElement)
+    (xmlDocument.documentElement as any) = <HTMLElement>xmlDocument.childNodes[0];
+
+  // Cut empty blockQuote markers
+  cutQuotation(xmlDocument, {onlyRemoveEmptyBlocks: true});
+
+  // Serialize and return.
+  return {
+    body: xmlDomSerializer.serializeToString(xmlDocument, true),
+    didFindQuote: true
+  }
+}
+
+function cutQuotation(xmlDocument: Document, options?: CutQuoteOptions) : boolean{
   return cutGmailQuote(xmlDocument, options)
   || cutZimbraQuote(xmlDocument, options)
   || cutBlockquote(xmlDocument, options)
