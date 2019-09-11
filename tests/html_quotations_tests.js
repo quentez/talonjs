@@ -440,7 +440,6 @@ describe("Html Quotations", function () {
 
          // Extract the quote.
         const replyHtml = quotations.extractFromHtml(html, {nodeLimit: 1, maxLinesCount: 1}).body;
-        console.log(replyHtml);
         assert.notInclude(replyHtml, "And you will not realize there is text here");
         return done();
       });
