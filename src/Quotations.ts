@@ -110,9 +110,10 @@ export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOp
   if (result.didFindQuote && !result.isTooLong)
     return result;
 
+  // Remove know quotation tag (gmai-quote, bloackquote etc...) from the xmlDocument
   let cutQuotations = cutQuotation(xmlDocument);
   // If message is too big try to rely on gmail quote to find checkpoint
-  if (result.isTooLong) {
+  if (result.isTooLong && cutQuotations) {
   const cutQuotationResult = extractQuotationFromCheckpoint(xmlDocument, messageBody, options);
     if (cutQuotationResult.didFindQuote && !cutQuotationResult.isTooLong)
       return cutQuotationResult;
