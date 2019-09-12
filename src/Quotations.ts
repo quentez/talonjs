@@ -275,8 +275,9 @@ export function markMessageLines(lines: string[]): string {
   let index = 0;
   while (index < lines.length) {
     const line = lines[index];
+
     // Empty line.
-    if (!line || line.trim() === '') {
+    if (!line || !line.trim()) {
       markers[index] = "e";
     // Line with a quotation marker.
     } else if (matchStart(line, QuotePatternRegexp)) {
@@ -301,6 +302,7 @@ export function markMessageLines(lines: string[]): string {
         index += splitterLines.length - 1;
       }
     }
+
     index++;
   }
 
