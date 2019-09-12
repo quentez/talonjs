@@ -39,7 +39,7 @@ export function addCheckpoint(document: Document, element: Node, options?: AddCh
   if (count < nodeLimit)
     for (let index = 0; index < element.childNodes.length && count < nodeLimit; index++) {
       const node = element.childNodes.item(index);
-      if (node.nodeType !== 1)
+      if (node.nodeType !== NodeTypes.ELEMENT_NODE)
         continue;
 
       count = addCheckpoint(document, node, {nodeLimit, count, level: level + 1});
@@ -61,6 +61,7 @@ export interface DeleteQuotationOptions {
   count?: number;
   level?: number;
   nodeLimit?: number;
+  shouldPreserveTable?: boolean;
 }
 
 /**
@@ -77,15 +78,16 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   isTagInQuotation: boolean
 } {
   let isTagInQuotation = true;
-  let { count, level, nodeLimit } = {
+  let { count, level, nodeLimit, shouldPreserveTable } = {
     count: 0,
     level: 0,
+    shouldPreserveTable: false,
     nodeLimit: DefaultNodeLimit,
     ...options
   }
 
   // Check if this element is a quotation tag.
-  if (quotationCheckpoints[count]) {
+  if (quotationCheckpoints[count] && !shouldPreserveTable) {
     if (element.firstChild && element.firstChild.nodeType === NodeTypes.TEXT_NODE)
       element.replaceChild(document.createTextNode(""), element.firstChild);
     else
@@ -96,19 +98,24 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   count++;
 
   // If this a non-quote table, don't remove children.
-  const preserveTable = !isTagInQuotation && element.nodeName === 'table';
+  const shouldPreserveTableAnyway = shouldPreserveTable || (!isTagInQuotation && element.nodeName === 'table');
 
   // Process recursively.
   const quotationChildren = new Array<Node>(); // Collection of children in quotation.
 
-  if (count < nodeLimit && !preserveTable)
+  if (count < nodeLimit)
     for (let index = 0; index < element.childNodes.length && count < nodeLimit; index++) {
       const node = element.childNodes.item(index);
       if (node.nodeType !== NodeTypes.ELEMENT_NODE)
         continue;
 
       let isChildTagInQuotation: boolean;
-      ({ count, isTagInQuotation: isChildTagInQuotation } = deleteQuotationTags(document, node, quotationCheckpoints, {nodeLimit, count, level: level + 1}));
+      ({ count, isTagInQuotation: isChildTagInQuotation } = deleteQuotationTags(document, node, quotationCheckpoints, {
+        nodeLimit,
+        count,
+        level: level + 1,
+        shouldPreserveTable: shouldPreserveTableAnyway
+      }));
 
       if (!isChildTagInQuotation)
         continue;
@@ -118,7 +125,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
     }
 
   // If needed, clear the following text node.
-  if (quotationCheckpoints[count]) {
+  if (quotationCheckpoints[count] && !shouldPreserveTableAnyway) {
     if (element.nextSibling && element.nextSibling.nodeType === NodeTypes.TEXT_NODE)
       element.parentNode.replaceChild(document.createTextNode(""), element.nextSibling);
   } else {
@@ -127,7 +134,7 @@ export function deleteQuotationTags(document: Document, element: Node, quotation
   count++;
 
   // If this tag wasn't part of a quote, remove its children who were.
-  if (!isTagInQuotation)
+  if (!isTagInQuotation && !shouldPreserveTableAnyway)
     for (const node of quotationChildren)
       node.parentNode.removeChild(node);
 
