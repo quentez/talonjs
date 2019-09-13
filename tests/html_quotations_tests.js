@@ -421,7 +421,7 @@ describe("Html Quotations", function () {
       });
     });
 
-       it("should correctly parse email with signature in reply.", function (done) {
+    it("should correctly parse email with signature in reply.", function (done) {
       return fs.readFile(path.join("tests", "fixtures", "front", "email_with_signature.html"), "utf-8", (err, html) => {
         if (err)
           return done(err);
@@ -429,6 +429,18 @@ describe("Html Quotations", function () {
          // Extract the quote.
         const replyHtml = quotations.extractFromHtml(html).body;
         assert.notInclude(replyHtml, "Leo Vck");
+        return done();
+      });
+    });
+
+    it("should correctly parseprocess email that are too long.", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_too_long.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+         // Extract the quote.
+        const replyHtml = quotations.extractFromHtml(html, {nodeLimit: 1, maxLinesCount: 1}).body;
+        assert.notInclude(replyHtml, "And you will not realize there is text here");
         return done();
       });
     });
