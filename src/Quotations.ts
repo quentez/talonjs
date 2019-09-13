@@ -105,29 +105,30 @@ export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOp
   if (xmlDocument.lastChild && xmlDocument.lastChild.nodeValue)
     xmlDocument.removeChild(xmlDocument.lastChild);
 
-  // Add the checkpoints to the HTML tree.
-  const result = extractQuotationFromCheckpoint(xmlDocument, messageBody, options);
-  if (result.didFindQuote && !result.isTooLong)
-    return result;
+  // Find the quote using the checkpoint method.
+  const result1 = extractQuotationUsingCheckpoints(xmlDocument, messageBody, options);
+  if (result1.didFindQuote && !result1.isTooLong)
+    return result1;
 
-  // Remove know quotation tag (gmai-quote, bloackquote etc...) from the xmlDocument
-  let cutQuotations = cutQuotation(xmlDocument);
-  // If message is too big try to rely on gmail quote to find checkpoint
-  if (result.isTooLong && cutQuotations) {
-  const cutQuotationResult = extractQuotationFromCheckpoint(xmlDocument, messageBody, options);
-    if (cutQuotationResult.didFindQuote && !cutQuotationResult.isTooLong)
-      return cutQuotationResult;
+  // If that didn't work, try to strip down the message by
+  // removing known quotation tags (gmail-quote, blockquote, etc.).
+  let wasQuotationRemoved = cutQuotation(xmlDocument);
+  if (!wasQuotationRemoved)
+    return { body: messageBody, didFindQuote: false };
+
+  // If the reason for failing the first time was size,
+  // try the checkpoint method again on the stripped down version.
+  if (result1.isTooLong) {
+    const result2 = extractQuotationUsingCheckpoints(xmlDocument, messageBody, options);
+    if (result2.didFindQuote && !result2.isTooLong)
+      return result2;
   }
 
-  // If one was found, return the content before.
-  if (cutQuotations)
-    return { body: xmlDomSerializer.serializeToString(xmlDocument, true), didFindQuote: true };
-
-  // Otherwise, if no quote was found, return the original HTML.
-  return { body: messageBody, didFindQuote: false };
+  // If that still didn't work, just use the stripped down version as-is.
+  return { body: xmlDomSerializer.serializeToString(xmlDocument, true), didFindQuote: true };
 }
 
-function extractQuotationFromCheckpoint(xmlDocument: Document, messageBody: string, options?: ExtractFromHtmlOptions): ExtractFromHtmlResult {
+function extractQuotationUsingCheckpoints(xmlDocument: Document, messageBody: string, options?: ExtractFromHtmlOptions): ExtractFromHtmlResult {
   // Use copy of document to check for checkpoint
   const xmlDocumentCopy = <Document>xmlDocument.cloneNode(true);
   const { nodeLimit, maxLinesCount } = {
