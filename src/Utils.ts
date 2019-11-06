@@ -29,7 +29,8 @@ export function splitLines(str: string): string[] {
  * @return {RegExpMatchArray} The resulting match, if any.
  */
 export function matchStart(str: string, regexp: RegExp): RegExpMatchArray {
-  let match: any = str.match(regexp);
+  const startRegexp = new RegExp(`^${regexp.source}`, regexp.flags);
+  let match: any = str.match(startRegexp);
   return !match || match.index > 0 ? null : match;
 };
 
