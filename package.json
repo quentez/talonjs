@@ -22,11 +22,11 @@
     "mailparser": "0.6.1",
     "mocha": "6.2.0",
     "retyped-xpath-tsd-ambient": "0.0.7-0",
+    "source-map-support": "^0.5.16",
     "typescript": "3.6.2"
   },
   "dependencies": {
     "cheerio": "0.22.0",
-    "source-map-support": "^0.5.16",
     "xmldom": "0.1.27",
     "xpath": "0.0.27"
   }
