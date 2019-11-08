@@ -1,16 +1,22 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "esModuleInterop": true,
     "module": "commonjs",
-    "noImplicitAny": true,
-    "removeComments": true,
-    "preserveConstEnums": true,
+    "noErrorTruncation": false,
     "outDir": "bin",
-    "sourceMap": true
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "target": "es2018",
+    "typeRoots": [
+      "./node_modules/@types",
+      "./local_types"
+    ]
   },
-  "files": [
-    "src/Talon.ts",
-    "xmldom.d.ts",
+  "include": [
+    "src/**/*",
     "node_modules/retyped-xpath-tsd-ambient/xpath.d.ts"
   ]
 }
