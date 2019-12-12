@@ -55,34 +55,52 @@ export const OnDateWroteSomebodyRegexp = new RegExp(
   }).{0,100}:`
 );
 
-export const QuotationRegexp = new RegExp(
-  "(" +
-    // Quotation border: splitter line or a number of quotation marker lines.
-    "(?:" +
+export const QuotationAfterSplitterRegexp = new RegExp(
+  "(?:" +
+    "(" +
+      // Quotation border: splitter line.
       "s" +
-      "|" +
-      "(?:me*){2,}" +
+      // Quotation lines could be marked as splitter or text, etc.
+      ".*" +
+      // But we expect it to end with a quotation marker line.
+      "me*"+
     ")" +
-    // Quotation lines could be marked as splitter or text, etc.
-    ".*" +
-    // But we expect it to end with a quotation marker line.
-    "me*" +
-  ")" +
-
-  // After quotations should be text only or nothing at all.
-  "[te]*$"
+    // After quotations should be text only or nothing at all.
+    "[te]*$" +
+  ")"
 );
 
-export const EmptyQuotationRegexp = new RegExp(
-  "(" +
-    // Quotation border: splitter line or a number of quotation marker lines.
-    "(?:" +
-      "(?:se*)+" +
-      "|" +
+export const QuotationBlockRegexp = new RegExp(
+  "(?:" +
+    "(" +
+      // Quotation border: a number of quotation marker lines.
       "(?:me*){2,}" +
+      // Quotation lines could be marked as splitter or text, etc.
+      ".*" +
+      // But we expect it to end with a quotation marker line.
+      "me*" +
     ")" +
+    // After quotations should be nothing at all.
+    "[e]*$" +
+  ")"
+);
+
+export const EmptyQuotationAfterSplitterRegexp = new RegExp(
+  "(" +
+    // Quotation border: splitter line.
+    "(?:se*)+" +
   ")" +
+  // Can have empty lines after quotation.
   "e*"
+);
+
+export const EmptyQuotationBlockRegexp = new RegExp(
+  "(" +
+    // Quotation border: number of quotation marker lines.
+    "(?:me*){2,}" +
+  ")" +
+  // Can only have empty lines after quotation.
+  "[e]*$"
 );
 
 // ------Original Message------ or ---- Reply Message ----
