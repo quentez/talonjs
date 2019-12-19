@@ -106,6 +106,7 @@ export const FromColonRegexp = new RegExp(
       "Van",
       "De",
       "Von",
+      "Von",
       "Fra",
       "Från"     // "From" in different languages.
     ].join("|")
@@ -115,6 +116,7 @@ export const FromColonRegexp = new RegExp(
       "Verzonden",
       "Envoyé",
       "Gesendet",
+      "Datum",
       "Sendt",
       "Skickat" ,
       "Enviada em"    // "Sent" in different languages.

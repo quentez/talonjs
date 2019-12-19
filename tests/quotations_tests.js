@@ -222,6 +222,17 @@ describe("Quotations", function () {
       assert.equal("Allo! Follow up MIME!", quotations.extractFromPlain(messageBody).body);
     });
 
+    it("should detect \"From\" block in German with Datum.", function () {
+      const messageBody = "Allo! Follow up MIME!\n\n" +
+        "Von: somebody@example.com\n" +
+        "An: Somebody\n" +
+        "Datum: Dienstag, 25. November 2014 14:59\n" +
+        "Betreff: The manager has commented on your Loop\n\n" +
+        "Blah-blah-blah\n";
+
+      assert.equal("Allo! Follow up MIME!", quotations.extractFromPlain(messageBody).body);
+    });
+
     it("should detect multiline \"From\" block in French.", function () {
       const messageBody = "Lorem ipsum\n\n" +
         "De : Brendan xxx [mailto:brendan.xxx@xxx.com]\n" +
