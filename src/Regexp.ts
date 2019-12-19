@@ -81,7 +81,7 @@ export const QuotationBlockRegexp = new RegExp(
       "me*" +
     ")" +
     // After quotations should be nothing at all.
-    "[e]*$" +
+    "e*$" +
   ")"
 );
 
@@ -100,7 +100,7 @@ export const EmptyQuotationBlockRegexp = new RegExp(
     "(?:me*){2,}" +
   ")" +
   // Can only have empty lines after quotation.
-  "[e]*$"
+  "e*$"
 );
 
 // ------Original Message------ or ---- Reply Message ----

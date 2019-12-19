@@ -381,9 +381,9 @@ export function processMarkedLines(lines: string[], markers: string): {
 
   // Handle the case with markers.
   quotation = markers.match(QuotationAfterSplitterRegexp)
-     || markers.match(QuotationBlockRegexp)
-     || markers.match(EmptyQuotationAfterSplitterRegexp)
-     || markers.match(EmptyQuotationBlockRegexp);
+    || markers.match(QuotationBlockRegexp)
+    || markers.match(EmptyQuotationAfterSplitterRegexp)
+    || markers.match(EmptyQuotationBlockRegexp);
 
   if (quotation) {
     const firstGroupStart = quotation.index + quotation[0].indexOf(quotation[1]);
