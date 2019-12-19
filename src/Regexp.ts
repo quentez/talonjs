@@ -17,7 +17,8 @@ export const OnDateSomebodyWroteRegexp = new RegExp(
       "Am",       // German
       "På",       // Norwegian
       "Den",      // Swedish, Danish,
-      "Em"        // Portuguese
+      "Em" ,      // Portuguese
+      "El"        // Spanish
     ].join("|")
   })[\\s].{0,100}(${
     // Date and sender separator.
@@ -34,7 +35,8 @@ export const OnDateSomebodyWroteRegexp = new RegExp(
       "schreef", "verzond", "geschreven", // Dutch
       "schrieb",                          // German
       "skrev" ,                           // Norwegian, Swedish
-      "escreveu"                          // Portuguese
+      "escreveu",                         // Portuguese
+      "escribió"                          // Spanish
     ].join("|")
   }):?-{0,100}`
 );
