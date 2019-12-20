@@ -237,6 +237,28 @@ describe("Html Quotations", function () {
       const reply = "<html><body><div>Blah<br/><br/></div></body></html>";
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
+
+    it("should not remove quotes in middle of message", function () {
+      const messageBody = `
+        <html>
+            <body>
+              <div>Hello
+                <div><br /></div>
+                <div>I like to add quote in the middle of my message.</div>
+                <div><br /></div>
+                <div>&gt; First quote.</div>
+                <div>&gt; Second quote</div>
+                <div>&gt; Last quote.</div>
+                <div><br /></div>
+                <div>Please do not erase them. </div>
+                <div><br /></div>
+                <div>John Doe</div>
+              </div>
+            </body>
+        </html>`;
+
+      assert.equal(removeWhitespace(messageBody), removeWhitespace(quotations.extractFromHtml(messageBody).body));
+    });
   });
 
   describe("Talon fixtures", function () {

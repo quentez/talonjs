@@ -14,13 +14,15 @@ import {
 } from './HtmlQuotations';
 import {
   CheckPointRegexp,
-  EmptyQuotationRegexp,
+  EmptyQuotationAfterSplitterRegexp,
+  EmptyQuotationBlockRegexp,
   ForwardRegexp,
   LinkRegexp,
   NormalizedLinkRegexp,
   OnDateSomebodyWroteRegexp,
   ParenthesisLinkRegexp,
-  QuotationRegexp,
+  QuotationAfterSplitterRegexp,
+  QuotationBlockRegexp,
   QuotePatternRegexp,
   SplitterRegexps,
 } from './Regexp';
@@ -378,8 +380,10 @@ export function processMarkedLines(lines: string[], markers: string): {
   }
 
   // Handle the case with markers.
-  quotation = markers.match(QuotationRegexp)
-    || markers.match(EmptyQuotationRegexp);
+  quotation = markers.match(QuotationAfterSplitterRegexp)
+    || markers.match(QuotationBlockRegexp)
+    || markers.match(EmptyQuotationAfterSplitterRegexp)
+    || markers.match(EmptyQuotationBlockRegexp);
 
   if (quotation) {
     const firstGroupStart = quotation.index + quotation[0].indexOf(quotation[1]);
