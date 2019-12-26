@@ -78,6 +78,11 @@ export function elementToText(element: Node, {ignoreBlockTags}: ElementToTextOpt
       const href = node.attributes.getNamedItem("href");
       if (href)
         text += `(${href}) `;
+
+      // Add src to the output.
+      const src = node.attributes.getNamedItem("src");
+      if (src)
+        text += `(${src}) `;
     }
   }
   // Remove excessive new lines from the result and return.
