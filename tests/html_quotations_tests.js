@@ -259,6 +259,47 @@ describe("Html Quotations", function () {
 
       assert.equal(removeWhitespace(messageBody), removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
+
+    it("should not crop whole message when it contains img only.", function () {
+      const messageBody = `
+        <html>
+            <body>
+                <div style="/* inherit */" class="fa-xnt3do">
+                    <div>
+                        <img data-front-emoji-shortcode=":heart:" alt="❤️" src="https://assets.frontapp.com/emoji-data-1806/img-apple-64/2764-fe0f.png" width="20" height="20" style="vertical-align: -4.55px;" />
+                    </div>
+                </div>
+                <img src="https://app.frontapp.com/api/1/noauth/companies/front/seen/msg_80hpmtf/han_k81flv/2396aa71.gif" style="width: 1px; height: 1px" />
+                <br />
+                <blockquote type="cite" class="front-blockquote">
+                    On December 11, 2019, 11:05 AM GMT+1 <a href="mailto:someone@frontapp.com" target="_blank" rel="noopener noreferrer">someone@something.com</a> wrote:
+                    <br />
+                    <br />
+                    <div id="fae_80hsp1f-rfd3bm">
+                        <div class="fa-jsgtee" style="/* inherit */">
+                            <div>Some content.</div>
+                            <div>
+                                <img style="width: 600px;" alt src="/api/1/companies/front/attachments/5b86f0264aebfc800b300a77658ae8c31f41bf74?resource_link_id=30120692419" front-cid="e57f80fb49bbaf17d8f3e99e427c676d" />
+                            </div>
+                            <br />
+                            <div class="front-signature fa-qnztnn">
+                                <div>—</div>
+                                <div>Someone</div>
+                                <div><i>Some role <a rel="noopener noreferrer" href="https://frontapp.com/" target="_blank">@Front</a></i></div>
+                            </div>
+                        </div>
+                        <img style="width: 1px; height: 1px" src="https://app.frontapp.com/api/1/noauth/companies/front/seen/msg_80dc1mr/han_hd49j7/da545b6f.gif" />
+                    </div>
+                </blockquote>
+                <img src="https://ext.frontusercontent.com/v1/proxy/bdvqrE0TTN8_Ic5PjD8arw-1hKL4iEy13mxqINSdGG0KXiqdWMckzSmhR3yyxOo8d9qp36FsKaUXeQTqUuIl43iRSgztQExMClUW3t4Qxk2-oIo2-f4x-mgFH6OC6ba68VrvhkB6R-QLr6zdWW_DebaRq8WyR5BH4Qtq1e5EI8lJuNczrzSqQbe4I5xk6pKxlueSEEoSoupJHnWiBsXa10Bh0HMWtAn8nKzNLj0vlnYDD9zGkVKicrHdlp8IAGO2xxbG5rizKnsvAQyU9ogEFA5H90yQgsk97Qr1glKJ8ORcRkEY8goscTtQANKCN1D1JB0UrGeW_EYTWZIfKwUq5OUMy2jKrJHW3eCmvP-4MtR7GtLykatTx5H-9DKUDKlDAzO0GnX0Ih9u8EI_gWcR-2L9vWWlQMzmSRo6Jffe9SDiBVExzpsG-mBehpAYaovv3W41ciGqo3HFmDcYHH2s76oPA6wVK3TQ-BCYs1GRLcXwPK29wf8SXkL9Trj8UOhrJAu5Nbo6ldxV1TVjvA06mx_b44XTHUtP7Hv1_QpbpDSp5-L5TgZNIzzzwNpq6Hd_7MEW8wAID-471Z21qG64bP-eSW3rtCbl6a8lNmAH4XcZhKbmtNlPvZQw88igNGoqMRbKOCQmSTT0-dWPkeJysG5RjbGocoqLxzSjI2vaSbSDojjaHH8xDew4lXOcgSIC4QPQw5Qx6mzhDeWwLD34S_SImVv5wXo22zKvuFitW4-eig#https://u7381212.ct.sendgrid.net/wf/open?upn=-2FO4r-2Bv3idb-2FUifLo2WiIBilgL0hkwazTSrgrT-2B9mVRCB8FYhih3Hp-2F1t7uO-2Bru9bkVUBUl4drm9mM5iKVk97mHsBnj9Eg9f9gG-2FoQp49vOmXOlS8ceAbNxOSUuvjTLHCIF7EwgBg0DYIqsyir-2B5EnqIjESfga96zN9o6MHevDIKjKu7kXwDJatgpAW27LEl4zQpjeVHhM6vEACWvJW3ODkv0xEjLlrZKrNCoes72-2FlApZHts8aSu-2Fk6v5ab3HZPfHou4ZEzspp4BQaf-2BcGwe5R-2FWbEdyOb0vPY8-2Bcue5QKIXrDjITKJm8zZKDhUiuRcb6pq4grze4OJCGtRtD29nBUTnu4RW2UgKkrZiyV7PShBac7g-2BoulmRmHH1JpAoQe3Nn3r6H15pJWKnZFz2YJQ9w-3D-3D" alt width="1" height="1" border="0" style="height:1px !important;width:1px !important;border-width:0 !important;margin-top:0 !important;margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !important;padding-top:0 !important;padding-bottom:0 !important;padding-right:0 !important;padding-left:0 !important;" />
+             </body>
+        </html>`;
+
+      const expectedLightBody =`<html><body><div style="/* inherit */" class="fa-xnt3do"><div><img data-front-emoji-shortcode=":heart:" alt="❤️" src="https://assets.frontapp.com/emoji-data-1806/img-apple-64/2764-fe0f.png" width="20" height="20" style="vertical-align: -4.55px;" /></div></div><img src="https://app.frontapp.com/api/1/noauth/companies/front/seen/msg_80hpmtf/han_k81flv/2396aa71.gif" style="width: 1px; height: 1px" /><br /></body></html>`;
+      const computedLightBody = quotations.extractFromHtml(messageBody).body;
+
+      assert.equal(removeWhitespace(expectedLightBody), removeWhitespace(computedLightBody));
+    });
   });
 
   describe("Talon fixtures", function () {
