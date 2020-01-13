@@ -3,9 +3,10 @@
   "version": "1.0.23",
   "description": "Javascript port of the Mailgun/Talon library.",
   "main": "bin/Talon.js",
+  "types": "bin/Talon.d.ts",
   "repository": "https://github.com/quentez/talonjs",
   "scripts": {
-    "prepublish": "node node_modules/typescript/bin/tsc",
+    "prepublish": "node node_modules/typescript/bin/tsc -d",
     "pretest": "node node_modules/typescript/bin/tsc",
     "test": "node node_modules/mocha/bin/_mocha -t 20000 tests/*.js"
   },
