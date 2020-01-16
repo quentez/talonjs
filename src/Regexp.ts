@@ -41,22 +41,6 @@ export const OnDateSomebodyWroteRegexp = new RegExp(
   }):?-{0,100}`
 );
 
-export const OnDateWroteSomebodyRegexp = new RegExp(
-  `-{0,100}[>]?[\\s]?(${
-    // Beginning of the line.
-    [
-      "Op",
-      "Am"  // German
-    ].join("|")
-  })[\\s].{0,100}(.*\\n){0,2}.{0,100}(${
-    // Ending of the line.
-    [
-      "schreef", "verzond", "geschreven", // Dutch
-      "schrieb"                           // German
-    ].join("|")
-  }).{0,100}:`
-);
-
 export const QuotationAfterSplitterRegexp = new RegExp(
   "(?:" +
     "(" +
