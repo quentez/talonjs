@@ -1,7 +1,15 @@
 import * as Cheerio from 'cheerio';
 import * as XmlDom from 'xmldom';
 
-import { ContentType, ContentTypeTextPlain, DefaultMaxLinesCount, DefaultNodeLimit, SplitterMaxLines, NodeTypes } from './Constants';
+import {
+  ContentType,
+  ContentTypeTextHtml,
+  ContentTypeTextPlain,
+  DefaultMaxLinesCount,
+  DefaultNodeLimit,
+  NodeTypes,
+  SplitterMaxLines
+} from './Constants';
 import {
   addCheckpoint,
   cutBlockquote,
@@ -197,7 +205,7 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
     ...options
   }
 
-  const messagePlainText = preprocess(elementToText(xmlDocument, {ignoreBlockTags}), "\n", ContentTypeTextPlain);
+  const messagePlainText = preprocess(elementToText(xmlDocument, {ignoreBlockTags}), "\n", ContentTypeTextHtml);
   let lines = splitLines(messagePlainText);
 
   // Stop here if the message is too long.
