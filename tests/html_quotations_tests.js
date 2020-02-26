@@ -142,9 +142,11 @@ describe("Html Quotations", function () {
         "</div>" +
         "</blockquote>";
 
+      const result = quotations.extractFromHtml(messageBody);
       assert.equal(
         removeWhitespace("<html><body>Message</body></html>"),
-        removeWhitespace(quotations.extractFromHtml(messageBody).body));
+        removeWhitespace(result.body));
+      assert.isFalse(result.didUseCheckpoints);
     });
 
     it("should detect reply with disclaimer after quote.", function () {
@@ -177,9 +179,9 @@ describe("Html Quotations", function () {
         "</body>\n" +
         "</html>\n";
 
-      assert.equal(
-        removeWhitespace(reply),
-        removeWhitespace(quotations.extractFromHtml(messageBody).body));
+      const result = quotations.extractFromHtml(messageBody);
+      assert.equal(removeWhitespace(reply), removeWhitespace(result.body));
+      assert.isFalse(result.didUseCheckpoints);
     });
 
     it("should detect reply with \"date\" block splitter.", function () {
@@ -550,6 +552,21 @@ describe("Html Quotations", function () {
         assert.include(replyHtml, "Too often, how we work with people outside");
         return done();
       });
+    });
+
+    it.skip("should not cut an inline blockquote from reply", function () {
+      const messageBody = `
+        <blockquote>
+          <p>What is your plan for X?</p>
+        </blockquote>
+        <p>I was planning on doing this in a separate PR, but it makes sense to add it here, so I'll just update this PR.</p>
+        <p style=\"font-size:small;-webkit-text-size-adjust:none;color:#666;\">&mdash;<br />You are receiving this because your review was requested.<br />Reply to this email directly, <a href=\"https://github.com/">unsubscribe</a>.</p>
+      `;
+
+       // Extract the quote.
+      const result = quotations.extractFromHtml(messageBody);
+      assert.include(result.body, "What is your plan for X?");
+      assert.isFalse(result.didFindQuote, "didFindQuote");
     });
 
     it("should correctly parse email with signature in reply.", function (done) {
