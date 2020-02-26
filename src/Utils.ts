@@ -1,7 +1,7 @@
 import * as XPath from 'xpath';
 
 import { BlockTags, HardbreakTags, NodeTypes } from './Constants';
-import { DelimiterRegexp } from './Regexp';
+import { DelimiterRegexp, ForwardRegexp } from './Regexp';
 
 /**
  * Find the line delimiter in the specified message body.
@@ -20,6 +20,15 @@ export function findDelimiter(messageBody: string): string {
  */
 export function splitLines(str: string): string[] {
   return str.split(/\r?\n/);
+};
+
+/**
+ * Return true if the ForwardRegexp matches the start of the given string.
+ * @param {string} str - The base string.
+ * @return {RegExpMatchArray} The resulting match, if any.
+ */
+export function isStartOfForwardedMessage(str: string): boolean {
+  return Boolean(matchStart(str.trim(), ForwardRegexp));
 };
 
 /**

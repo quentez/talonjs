@@ -4,7 +4,7 @@ export const CheckPointRegexp = new RegExp(`${CheckpointPrefix}\\d+${CheckpointS
 
 export const DelimiterRegexp = new RegExp("\\r?\\n");
 
-export const ForwardRegexp = new RegExp("^[-]+[ ]*Forwarded message[ ]*[-]+$", "im");
+export const ForwardRegexp = new RegExp("^[-\\w]+[ ]*Forwarded message(:|[ ]*-+)$", "im");
 
 export const OnDateSomebodyWroteRegexp = new RegExp(
   `-{0,100}[>]?[\\s]?(${
