@@ -238,6 +238,46 @@ describe("Html Quotations", function () {
       assert.equal(reply, removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
+    it("should not find splitter lines in the middle of reply", function () {
+      const messageBody = `
+        <html>
+          <body>
+            <div dir=\"ltr\"><div>Resending this:</div>
+              <div dir=\"ltr\"><br></div>
+              <div dir=\"ltr\">
+                Hi Recipient,
+                <div><br></div>
+                <div>Thanks for following up.</div><div><br></div>
+                <div>I actually wanted to reach out about the info you provided: </div>
+                <div>
+                  <ul>
+                    <li>On the previous two occasions, when David sent us the photos, only the blue sloth was available for adoption.</li>
+                    <li>This list, with the additional requested information, would be nice.</li>
+                    <li>And yes, we can add a gift note to the box.</li>
+                  </ul>
+                  <div>Also, would you like to purchase a frame?</div>
+                  <div><br></div>
+                  <div>Best,</div>
+                  <div class=\"gmail_quote\">
+                    <div dir=\"ltr\" class=\"gmail_attr\"><br></div>
+                    <div><br></div>
+                    -- <br>
+                    <div dir=\"ltr\" class=\"gmail_signature\"><div><div dir=\"ltr\">Signature</div></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Extract the quote.
+      const replyHtml = quotations.extractFromHtml(messageBody).body;
+
+      assert.include(replyHtml, "On the previous two occasions", "The reply does not cut message content that resembles a splitter line");
+      assert.include(replyHtml, "Best,", "The reply does not cut the line before the signature");
+    });
+
     it("should not remove quotes in middle of message", function () {
       const messageBody = `
         <html>
