@@ -90,7 +90,8 @@ interface ExtractFromHtmlOptions {
 }
 
 interface ExtractFromHtmlResult extends ExtractFromPlainResult {
-  isTooLong?: boolean
+  isTooLong?: boolean,
+  didUseCheckpoints?: boolean
 }
 
 /**
@@ -135,7 +136,11 @@ export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOp
   }
 
   // If that still didn't work, just use the stripped down version as-is.
-  return { body: xmlDomSerializer.serializeToString(xmlDocument, true), didFindQuote: true };
+  return {
+    body: xmlDomSerializer.serializeToString(xmlDocument, true),
+    didFindQuote: true,
+    didUseCheckpoints: false
+  };
 }
 
 function extractQuotationUsingCheckpoints(xmlDocument: Document, messageBody: string, options?: ExtractFromHtmlOptions): ExtractFromHtmlResult {
@@ -175,7 +180,8 @@ function extractQuotationUsingCheckpoints(xmlDocument: Document, messageBody: st
   // Serialize and return.
   return {
     body: xmlDomSerializer.serializeToString(xmlDocument, true),
-    didFindQuote: true
+    didFindQuote: true,
+    didUseCheckpoints: true
   }
 }
 

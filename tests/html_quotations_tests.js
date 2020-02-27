@@ -142,9 +142,11 @@ describe("Html Quotations", function () {
         "</div>" +
         "</blockquote>";
 
+      const result = quotations.extractFromHtml(messageBody);
       assert.equal(
         removeWhitespace("<html><body>Message</body></html>"),
-        removeWhitespace(quotations.extractFromHtml(messageBody).body));
+        removeWhitespace(result.body));
+      assert.isFalse(result.didUseCheckpoints);
     });
 
     it("should detect reply with disclaimer after quote.", function () {
@@ -177,9 +179,9 @@ describe("Html Quotations", function () {
         "</body>\n" +
         "</html>\n";
 
-      assert.equal(
-        removeWhitespace(reply),
-        removeWhitespace(quotations.extractFromHtml(messageBody).body));
+      const result = quotations.extractFromHtml(messageBody);
+      assert.equal(removeWhitespace(reply), removeWhitespace(result.body));
+      assert.isFalse(result.didUseCheckpoints);
     });
 
     it("should detect reply with \"date\" block splitter.", function () {
