@@ -554,21 +554,6 @@ describe("Html Quotations", function () {
       });
     });
 
-    it.skip("should not cut an inline blockquote from reply", function () {
-      const messageBody = `
-        <blockquote>
-          <p>What is your plan for X?</p>
-        </blockquote>
-        <p>I was planning on doing this in a separate PR, but it makes sense to add it here, so I'll just update this PR.</p>
-        <p style=\"font-size:small;-webkit-text-size-adjust:none;color:#666;\">&mdash;<br />You are receiving this because your review was requested.<br />Reply to this email directly, <a href=\"https://github.com/">unsubscribe</a>.</p>
-      `;
-
-       // Extract the quote.
-      const result = quotations.extractFromHtml(messageBody);
-      assert.include(result.body, "What is your plan for X?");
-      assert.isFalse(result.didFindQuote, "didFindQuote");
-    });
-
     it("should correctly parse email with signature in reply.", function (done) {
       return fs.readFile(path.join("tests", "fixtures", "front", "email_with_signature.html"), "utf-8", (err, html) => {
         if (err)
