@@ -233,7 +233,7 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
       for (let checkpoint of lineCheckpoints[index])
         quotationCheckpoints[checkpoint] = true;
 
-  return {quoteWasFound: wereLinesDeleted, quotationCheckpoints: quotationCheckpoints}
+  return {quoteWasFound: wereLinesDeleted, quotationCheckpoints }
 }
 
 /*
@@ -306,7 +306,7 @@ export function markMessageLines(lines: string[]): string {
     } else if (matchStart(line, QuotePatternRegexp)) {
       markers[index] = "m";
     // Forwarded message.
-    } else if (matchStart(line, ForwardRegexp)) {
+    } else if (matchStart(line.trim(), ForwardRegexp)) {
       markers[index] = "f";
     } else {
       // Try to find a splitter spread on several lines.
@@ -352,10 +352,12 @@ export function processMarkedLines(lines: string[], markers: string): {
     firstDeletedLine: -1,
     lastDeletedLine: -1
   };
+
   // If there are no splitters, there should be no markers.
   if (markers.indexOf("s") < 0 && !/(me*){3}/.exec(markers))
     markers = markers.replace(/m/g, "t");
 
+  // Return forwarded messages intact (do not delete any lines)
   if (matchStart(markers, /[te]*f/))
     return result;
 

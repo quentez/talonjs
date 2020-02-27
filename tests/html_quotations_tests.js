@@ -300,6 +300,34 @@ describe("Html Quotations", function () {
       assert.equal(removeWhitespace(messageBody), removeWhitespace(quotations.extractFromHtml(messageBody).body));
     });
 
+    it("should not cut forwarded messages from the reply", function () {
+      const messageBody = `
+        <html>
+          <body>
+            <div><br><br>Sent from my iPad</div>
+            <div><br>--- Forwarded message ---<br><br></div>
+            <blockquote type=\"cite\">
+              <div><b>From:</b> Ms. Smith &lt;<a href=\"mailto:mssmith123@gmail.com\">mssmith123@gmail.com</a>&gt;<br><b>Date:</b> November 12, 2019 at 3:27:21 PM EST<br><b>To:</b> <a href=\"mailto:support@company.com\">support@company.com</a><br><b>Subject:</b> <b>This is the subject</b><br><br></div>
+            </blockquote>
+            <div><span></span></div><blockquote type=\"cite\"><div><span>Here are the screenshots.</span><br><span></span><br></div></blockquote>
+            <blockquote type=\"cite\"><div><img src=\"\" id=\"\" style=\"padding:0px 1px 1px 0px;\"></div></blockquote>
+            <blockquote type=\"cite\"><div><span></span><br><span></span><br><span></span><br></div></blockquote>
+            <blockquote type=\"cite\"><div><img src=\"\" id=\"\" style=\"padding:0px 1px 1px 0px;\"></div></blockquote>
+            <blockquote type=\"cite\"><div><span></span><br><span></span><br><span></span><br></div></blockquote>
+            <blockquote type=\"cite\"><div><img src=\"\" id=\"\" style=\"padding:0px 1px 1px 0px;\"></div></blockquote>
+            <blockquote type=\"cite\"><div><span></span><br><span></span><br><span></span><br></div></blockquote>
+            <blockquote type=\"cite\"><div><img src=\"\" id=\"\" style=\"padding:0px 1px 1px 0px;\"></div></blockquote>
+            <blockquote type=\"cite\"><div><span></span><br><span></span><br><span>Sent from my iPhone</span></div></blockquote>
+          </body>
+        </html>
+      `;
+
+      const replyHtml = quotations.extractFromHtml(messageBody).body;
+      assert.include(replyHtml, "Sent from my iPad", "The reply preserves the signature");
+      assert.include(replyHtml, "Forwarded message", "The reply does not cut the splitter line");
+      assert.include(replyHtml, "Here are the screenshots", "The forwarded content is not cut from the reply");
+    });
+
     it("should not crop whole message when it contains img only.", function () {
       const messageBody = `
         <html>
