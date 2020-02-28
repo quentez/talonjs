@@ -90,8 +90,9 @@ interface ExtractFromHtmlOptions {
 }
 
 interface ExtractFromHtmlResult extends ExtractFromPlainResult {
-  isTooLong?: boolean,
-  didUseCheckpoints?: boolean
+  didUseCheckpoints?: boolean,
+  isForwardedMessage?: boolean,
+  isTooLong?: boolean
 }
 
 /**
@@ -118,7 +119,7 @@ export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOp
 
   // Find the quote using the checkpoint method.
   const result1 = extractQuotationUsingCheckpoints(xmlDocument, messageBody, options);
-  if (result1.didFindQuote && !result1.isTooLong)
+  if ((result1.didFindQuote && !result1.isTooLong) || result1.isForwardedMessage)
     return result1;
 
   // If that didn't work, try to strip down the message by
@@ -160,6 +161,15 @@ function extractQuotationUsingCheckpoints(xmlDocument: Document, messageBody: st
   if (extractQuoteHtml.error)
     return { body: messageBody, didFindQuote: false, isTooLong: true };
 
+  // Return forwarded messages intact (do not remove quote)
+  if (extractQuoteHtml.isForwardedMessage)
+    return {
+      body: xmlDomSerializer.serializeToString(xmlDocument, true),
+      didFindQuote: false,
+      didUseCheckpoints: true,
+      isForwardedMessage: true
+    };
+
   // Make sure we did not miss a quote due to some parsing error
   if (!extractQuoteHtml.quoteWasFound)
     extractQuoteHtml = extractQuoteHtmlViaMarkers(numberOfCheckpoints, xmlDocumentCopy, {ignoreBlockTags: true, maxLinesCount});
@@ -199,6 +209,7 @@ interface ExtractQuoteOptions {
 }
 
 interface ExtractQuoteResult {
+  isForwardedMessage?: boolean,
   quotationCheckpoints?: Array<boolean>,
   quoteWasFound?: boolean,
   error?: string
@@ -231,7 +242,7 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
   // Use the plain text quotation algorithm.
   const markers = markMessageLines(lines);
 
-  const { wereLinesDeleted, firstDeletedLine, lastDeletedLine } = processMarkedLines(lines, markers);
+  const { wereLinesDeleted, firstDeletedLine, lastDeletedLine, isForwardedMessage } = processMarkedLines(lines, markers);
   const quotationCheckpoints = new Array<boolean>(numberOfCheckpoints);
 
   if (wereLinesDeleted)
@@ -239,7 +250,7 @@ function extractQuoteHtmlViaMarkers(numberOfCheckpoints: number, xmlDocument: Do
       for (let checkpoint of lineCheckpoints[index])
         quotationCheckpoints[checkpoint] = true;
 
-  return {quoteWasFound: wereLinesDeleted, quotationCheckpoints }
+  return {quoteWasFound: wereLinesDeleted, quotationCheckpoints, isForwardedMessage }
 }
 
 /*
@@ -347,25 +358,27 @@ export function markMessageLines(lines: string[]): string {
  * @return {string[]} The lines for th
  */
 export function processMarkedLines(lines: string[], markers: string): {
-  lastMessageLines: string[],
-  wereLinesDeleted: boolean,
+  isForwardedMessage: boolean,
   firstDeletedLine: number,
-  lastDeletedLine: number
+  lastDeletedLine: number,
+  lastMessageLines: string[],
+  wereLinesDeleted: boolean
 } {
   const result = {
-    lastMessageLines: lines,
-    wereLinesDeleted: false,
+    isForwardedMessage: false,
     firstDeletedLine: -1,
-    lastDeletedLine: -1
+    lastDeletedLine: -1,
+    lastMessageLines: lines,
+    wereLinesDeleted: false
   };
 
-  // If there are no splitters, there should be no markers.
+  // If there are no splitters, convert any quotation markers to text markers instead.
   if (markers.indexOf("s") < 0 && !/(me*){3}/.exec(markers))
     markers = markers.replace(/m/g, "t");
 
   // Return forwarded messages intact (do not delete any lines)
   if (matchStart(markers, /[te]*f/))
-    return result;
+    return { ...result, isForwardedMessage: true };
 
   // Inlined reply.
   // Use lookbehind assertions to find overlapping entries. e.g. for "mtmtm".
