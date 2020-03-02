@@ -24,7 +24,6 @@ import {
   CheckPointRegexp,
   EmptyQuotationAfterSplitterRegexp,
   EmptyQuotationBlockRegexp,
-  ForwardRegexp,
   LinkRegexp,
   NormalizedLinkRegexp,
   OnDateSomebodyWroteRegexp,
@@ -34,7 +33,7 @@ import {
   QuotePatternRegexp,
   SplitterRegexps,
 } from './Regexp';
-import { elementToText, findDelimiter, matchStart, normalizeHtmlDocument, splitLines } from './Utils';
+import { elementToText, findDelimiter, isStartOfForwardedMessage, matchStart, normalizeHtmlDocument, splitLines } from './Utils';
 
 const xmlDomParser = new XmlDom.DOMParser({ errorHandler: { warning: () => {}, error: () => {}, fatalError: (error) => { throw error; } }});
 const xmlDomSerializer = new XmlDom.XMLSerializer();
@@ -323,7 +322,7 @@ export function markMessageLines(lines: string[]): string {
     } else if (matchStart(line, QuotePatternRegexp)) {
       markers[index] = "m";
     // Forwarded message.
-    } else if (matchStart(line.trim(), ForwardRegexp)) {
+    } else if (isStartOfForwardedMessage(line)) {
       markers[index] = "f";
     } else {
       // Try to find a splitter spread on several lines.

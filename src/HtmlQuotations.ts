@@ -1,8 +1,7 @@
 import * as XPath from 'xpath';
 
 import { CheckpointPrefix, CheckpointSuffix, QuoteIds, NodeTypes, DefaultNodeLimit } from './Constants';
-import { ForwardRegexp } from './Regexp';
-import { matchStart } from './Utils';
+import { isStartOfForwardedMessage, matchStart } from './Utils';
 
 
 export interface AddCheckpointOptions {
@@ -165,7 +164,7 @@ export function cutGmailQuote(document: Document, options?: CutQuoteOptions): bo
   const gmailQuote = <Node>XPath.select("//*[contains(@class, 'gmail_quote')]", document, true);
 
   // If no quote was found, or if that quote was a forward, return false.
-  if (!gmailQuote || (gmailQuote.textContent && matchStart(gmailQuote.textContent, ForwardRegexp)) || shouldNotRemoveQuote(gmailQuote, options))
+  if (!gmailQuote || (gmailQuote.textContent && isStartOfForwardedMessage(gmailQuote.textContent)) || shouldNotRemoveQuote(gmailQuote, options))
     return false;
 
   // Otherwise, remove the quote from the document and return.
