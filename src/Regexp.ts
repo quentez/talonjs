@@ -12,6 +12,7 @@ export const OnDateSomebodyWroteRegexp = new RegExp(
     [
       "On",       // English,
       "Le",       // French
+      "Il",       // Italian
       "W dniu",   // Polish
       "Op",       // Dutch
       "Am",       // German
@@ -36,7 +37,8 @@ export const OnDateSomebodyWroteRegexp = new RegExp(
       "schrieb",                          // German
       "skrev" ,                           // Norwegian, Swedish
       "escreveu",                         // Portuguese
-      "escribió"                          // Spanish
+      "escribió",                         // Spanish
+      "ha scritto"                        // Italian
     ].join("|")
   }):?-{0,100}`
 );
@@ -132,12 +134,13 @@ export const FromColonRegexp = new RegExp(
     [
       "Sent",
       "Verzonden",
-      "Envoyé",
-      "Gesendet",
-      "Datum",
-      "Sendt",
-      "Skickat" ,
-      "Enviada em"    // "Sent" in different languages.
+      "Envoyé",         // French
+      "Gesendet",       // German
+      "Datum",          // German
+      "Sendt",          // Norwegian
+      "Skickat",        // Swedish
+      "Enviada em",     // Portuguese
+      "Inviato"         // Italian
     ].join("|")
   })`, "i"
 );
