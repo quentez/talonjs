@@ -86,6 +86,10 @@ export function extractFromPlain(messageBody: string, options?: ExtractFromPlain
 interface ExtractFromHtmlOptions {
   nodeLimit?: number;
   maxLinesCount?: number;
+
+  // Unless true, allow quote detection by attrition: if all else fails,
+  // try removing an outermost quotation tag and return the stripped-down body.
+  skipSimpleQuoteRemoval?: boolean;
 }
 
 interface ExtractFromHtmlResult extends ExtractFromPlainResult {
@@ -100,7 +104,7 @@ interface ExtractFromHtmlResult extends ExtractFromPlainResult {
  * @param {string} messageBody - The html body to extract the message from.
  * @return {string} The extracted, non-quoted message.
  */
-export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOptions): ExtractFromHtmlResult {
+export function extractFromHtml(messageBody: string, options: ExtractFromHtmlOptions = {}): ExtractFromHtmlResult {
   if (!messageBody || !messageBody.trim())
     return { body: messageBody, didFindQuote: false };
 
@@ -128,14 +132,23 @@ export function extractFromHtml(messageBody: string, options?: ExtractFromHtmlOp
     return { body: messageBody, didFindQuote: false };
 
   // If the reason for failing the first time was size,
-  // try the checkpoint method again on the stripped down version.
+  // try the checkpoint method again on the stripped-down version.
   if (result1.isTooLong) {
     const result2 = extractQuotationUsingCheckpoints(xmlDocument, messageBody, options);
     if (result2.didFindQuote && !result2.isTooLong)
       return result2;
+
+  // We didn't find any quoted text, return the original message body
+  } else if (options.skipSimpleQuoteRemoval) {
+    return {
+      body: messageBody,
+      didFindQuote: false,
+      didUseCheckpoints: true
+    };
   }
 
-  // If that still didn't work, just use the stripped down version as-is.
+  // If that still didn't work, just use the stripped-down version as-is.
+  // This most often happens with messages that are too long or in a language that's not supported yet.
   return {
     body: xmlDomSerializer.serializeToString(xmlDocument, true),
     didFindQuote: true,

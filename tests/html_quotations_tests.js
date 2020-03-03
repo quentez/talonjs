@@ -342,6 +342,49 @@ describe("Html Quotations", function () {
 
       assert.equal(removeWhitespace(expectedLightBody), removeWhitespace(computedLightBody));
     });
+
+    describe("skipSimpleQuoteRemoval option", function () {
+
+      it("should not cut an inline blockquote from reply", function () {
+        const messageBody = `
+          <blockquote>
+            <p>What is your plan for X?</p>
+          </blockquote>
+          <p>I was planning on doing this in a separate PR, but it makes sense to add it here, so I'll just update this PR.</p>
+          <p style=\"font-size:small;-webkit-text-size-adjust:none;color:#666;\">&mdash;<br />You are receiving this because your review was requested.<br />Reply to this email directly, <a href=\"https://github.com/">unsubscribe</a>.</p>
+        `;
+
+        // Confirm that the blockquote is cut without the option enabled
+        const firstResult = quotations.extractFromHtml(messageBody);
+        assert.notInclude(firstResult.body, "What is your plan for X?");
+        assert.isTrue(firstResult.didFindQuote, "didFindQuote");
+        assert.isFalse(firstResult.didUseCheckpoints, "didUseCheckpoints");
+
+         // Extract the quote with the option enabled
+        const secondResult = quotations.extractFromHtml(messageBody, { skipSimpleQuoteRemoval: true });
+        assert.include(secondResult.body, "What is your plan for X?");
+        assert.isFalse(secondResult.didFindQuote, "didFindQuote");
+        assert.isTrue(secondResult.didUseCheckpoints, "didUseCheckpoints");
+      });
+    });
+
+    it("should still allow simple removal for messages that are too long", function (done) {
+      return fs.readFile(path.join("tests", "fixtures", "front", "email_too_long.html"), "utf-8", (err, html) => {
+        if (err)
+          return done(err);
+
+         // Extract the quote.
+        const result = quotations.extractFromHtml(html, {
+          nodeLimit: 1,
+          maxLinesCount: 1,
+          skipSimpleQuoteRemoval: true
+        });
+        assert.notInclude(result.body, "And you will not realize there is text here");
+        assert.isTrue(result.didFindQuote, "didFindQuote");
+        assert.isFalse(result.didUseCheckpoints, "didUseCheckpoints");
+        return done();
+      });
+    });
   });
 
   describe("Forwarded messages", function () {

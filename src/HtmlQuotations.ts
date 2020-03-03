@@ -270,7 +270,7 @@ export function cutById(document: Document, options?: CutQuoteOptions): boolean 
 };
 
 /**
- * Cust the last non-nested blockquote with wrapping elements.
+ * Cuts the last non-nested blockquote with wrapping elements.
  *
  * @param {Document} document - The document to cut the element from.
  * @param {CutQuoteOptions} options - Extra options.
