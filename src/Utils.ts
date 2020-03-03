@@ -100,13 +100,13 @@ export function elementToText(element: Node, {ignoreBlockTags}: ElementToTextOpt
 
 function extractTextFromNode(node: Node, text: String) {
   let nodeValue = (node.nodeValue || (node.firstChild && node.firstChild.nodeType === NodeTypes.TEXT_NODE && node.firstChild.nodeValue) || '').trim();
-  const sibillingValue = ((node.nextSibling && node.nextSibling.nodeType === NodeTypes.TEXT_NODE && node.nextSibling.nodeValue) || '').trim();
+  const siblingValue = ((node.nextSibling && node.nextSibling.nodeType === NodeTypes.TEXT_NODE && node.nextSibling.nodeValue) || '').trim();
 
   if (HardbreakTags.indexOf(node.nodeName.toLowerCase()) >= 0
     && text && text[text.length - 1] !== "\n")
     nodeValue += "\n";
 
-  let nodeText = nodeValue + sibillingValue;
+  let nodeText = nodeValue + siblingValue;
   return nodeText.replace('\\n', '\n');
 }
 
