@@ -11,7 +11,7 @@
     "test": "node node_modules/mocha/bin/_mocha -t 20000 tests/*.js"
   },
   "author": "FrontApp Inc.",
-  "license": "ISC",
+  "license": "MIT",
   "resolutions": {
     "lodash": "4.17.15",
     "lodash.merge": "4.6.2"
