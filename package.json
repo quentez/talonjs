@@ -28,6 +28,6 @@
   "dependencies": {
     "cheerio": "0.22.0",
     "xmldom": "0.1.27",
-    "xpath": "0.0.27"
+    "xpath": "0.0.32"
   }
 }
